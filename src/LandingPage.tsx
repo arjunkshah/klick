@@ -5,14 +5,11 @@ import { FeatureRows } from "./components/FeatureRows";
 import { TestimonialsSection } from "./components/TestimonialsSection";
 import { ResearchCareersRow } from "./components/ResearchCareersRow";
 import { FrontierSection } from "./components/FrontierSection";
-import { ChangelogSection } from "./components/ChangelogSection";
-import { BlogHighlights } from "./components/BlogHighlights";
-import { FinalCta } from "./components/FinalCta";
 import { SiteFooter } from "./components/SiteFooter";
 
 export function LandingPage() {
   return (
-    <>
+    <div className="bg-theme-bg text-theme-text">
       <SiteHeader />
       <main id="main">
         <HeroSection />
@@ -21,11 +18,8 @@ export function LandingPage() {
         <TestimonialsSection />
         <ResearchCareersRow />
         <FrontierSection />
-        <ChangelogSection />
-        <BlogHighlights />
-        <FinalCta />
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

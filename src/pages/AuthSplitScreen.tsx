@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
@@ -29,6 +30,7 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const ready = status === "ready";
   const isSignup = mode === "signup";
@@ -38,9 +40,19 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
     return <Navigate to="/app" replace />;
   }
 
+  const panelEase = [0.22, 1, 0.36, 1] as const;
+
   return (
     <div className="auth-split bg-theme-bg text-theme-text">
-      <div className="auth-split__visual media-border-container relative h-full min-h-0 min-w-0 bg-theme-media-backdrop">
+      <motion.div
+        className="auth-split__visual media-border-container relative h-full min-h-0 min-w-0 bg-theme-media-backdrop"
+        initial={{ opacity: reduceMotion ? 1 : 0 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.38,
+          ease: panelEase,
+        }}
+      >
         <img
           src="/auth-hero.png"
           alt=""
@@ -51,9 +63,18 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
           fetchPriority="high"
         />
         <AuthTestimonialMarquees />
-      </div>
+      </motion.div>
 
-      <div className="auth-split__panel bg-theme-bg">
+      <motion.div
+        className="auth-split__panel bg-theme-bg"
+        initial={{ opacity: reduceMotion ? 1 : 0, x: reduceMotion ? 0 : 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.34,
+          delay: reduceMotion ? 0 : 0.08,
+          ease: panelEase,
+        }}
+      >
         <div className="container flex w-full max-w-prose flex-col">
           <Link
             to="/"
@@ -209,7 +230,7 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
             )}
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

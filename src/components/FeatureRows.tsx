@@ -1,6 +1,5 @@
 import { captured } from "../assets/captured";
 import { SITE_ORIGIN } from "../site";
-import { Reveal } from "./Reveal";
 
 function MediaImg({ src }: { src: string }) {
   return (
@@ -19,7 +18,7 @@ export function FeatureRows() {
   return (
     <section className="section section--flush-x bg-theme-bg text-theme-text">
       <div className="section section--flush-y bg-theme-bg text-theme-text">
-        <div className="container mb-v4">
+        <div className="container mb-v3">
           <div className="grid grid-rows-[auto_1fr]">
             <a
               className="card card--large card--feature grid-cursor col-span-full row-span-full max-lg:grid-rows-subgrid"
@@ -28,8 +27,7 @@ export function FeatureRows() {
               <div
                 className={`col-span-full row-start-1 row-end-2 grid lg:row-start-1 lg:row-end-3 lg:items-center lg:pl-g0.25 lg:pr-g3 ${textL}`}
               >
-                <Reveal kind="left">
-                  <div className="max-w-prose w-full lg:justify-self-start">
+                <div className="max-w-prose w-full lg:justify-self-start">
                     <div className="type-base">
                       <h3 className="type-base text-pretty lg:type-md">
                         Orchestrate work like Linear—now with agents
@@ -43,7 +41,6 @@ export function FeatureRows() {
                       <span className="btn-tertiary">See issue intelligence →</span>
                     </div>
                   </div>
-                </Reveal>
               </div>
               <div
                 className={`max-lg:mt-g1.75 col-span-full row-start-2 row-end-3 grid cursor-default items-end lg:row-start-1 lg:row-end-3 lg:items-center ${visR}`}
@@ -56,9 +53,7 @@ export function FeatureRows() {
               <div
                 className={`max-lg:pt-v1 col-span-full row-start-2 row-end-3 grid cursor-default items-end lg:row-start-2 lg:row-end-3 lg:items-center ${visR}`}
               >
-                <Reveal kind="right" delay={0.1}>
-                  <MediaImg src={captured.agents} />
-                </Reveal>
+                <MediaImg src={captured.agents} />
               </div>
             </div>
           </div>
@@ -66,14 +61,13 @@ export function FeatureRows() {
       </div>
 
       <div className="section section--flush-y bg-theme-bg text-theme-text">
-        <div className="container mb-v4">
+        <div className="container mb-v3">
           <div className="grid grid-rows-[auto_1fr]">
             <div className="card card--large grid-cursor col-span-full row-span-full max-lg:grid-rows-subgrid">
               <div
                 className={`col-span-full row-start-1 row-end-2 grid lg:row-start-1 lg:row-end-3 lg:items-center lg:pl-g3 lg:pr-g0.25 ${textR}`}
               >
-                <Reveal kind="right">
-                  <div className="max-w-prose w-full lg:justify-self-end">
+                <div className="max-w-prose w-full lg:justify-self-end">
                     <div className="type-base">
                       <h3 className="type-base text-pretty lg:type-md">
                         Notion-grade context, without the tab sprawl
@@ -89,7 +83,6 @@ export function FeatureRows() {
                       </a>
                     </div>
                   </div>
-                </Reveal>
               </div>
               <div
                 className={`max-lg:mt-g1.75 col-span-full row-start-2 row-end-3 grid lg:row-start-1 lg:row-end-3 lg:items-center ${visL}`}
@@ -102,9 +95,7 @@ export function FeatureRows() {
               <div
                 className={`max-lg:pt-v1 col-span-full row-start-2 row-end-3 grid items-end lg:row-start-2 lg:row-end-3 lg:items-center ${visL}`}
               >
-                <Reveal kind="left" delay={0.1}>
-                  <MediaImg src={captured.parallelA} />
-                </Reveal>
+                <MediaImg src={captured.parallelA} />
               </div>
             </div>
           </div>
@@ -112,7 +103,7 @@ export function FeatureRows() {
       </div>
 
       <div className="section section--flush-y bg-theme-bg text-theme-text">
-        <div className="container mb-v4">
+        <div className="container mb-v3">
           <div className="grid grid-rows-[auto_1fr]">
             <a
               className="card card--large card--feature grid-cursor col-span-full row-span-full max-lg:grid-rows-subgrid"
@@ -121,8 +112,7 @@ export function FeatureRows() {
               <div
                 className={`col-span-full row-start-1 row-end-2 grid lg:row-start-1 lg:row-end-3 lg:items-center lg:pl-g0.25 lg:pr-g3 ${textL}`}
               >
-                <Reveal kind="left">
-                  <div className="max-w-prose w-full lg:justify-self-start">
+                <div className="max-w-prose w-full lg:justify-self-start">
                     <div className="type-base">
                       <h3 className="type-base text-pretty lg:type-md">Slack pulse, minus the noise</h3>
                       <div className="type-base text-pretty text-theme-text-sec lg:type-md">
@@ -136,7 +126,6 @@ export function FeatureRows() {
                       </code>
                     </div>
                   </div>
-                </Reveal>
               </div>
               <div
                 className={`max-lg:mt-g1.75 col-span-full row-start-2 row-end-3 grid cursor-default items-end lg:row-start-1 lg:row-end-3 lg:items-center ${visR}`}
@@ -149,9 +138,7 @@ export function FeatureRows() {
               <div
                 className={`max-lg:pt-v1 col-span-full row-start-2 row-end-3 grid cursor-default items-end lg:row-start-2 lg:row-end-3 lg:items-center ${visR}`}
               >
-                <Reveal kind="right" delay={0.1}>
-                  <MediaImg src={captured.toolsRow} />
-                </Reveal>
+                <MediaImg src={captured.toolsRow} />
               </div>
             </div>
           </div>
@@ -159,14 +146,13 @@ export function FeatureRows() {
       </div>
 
       <div className="section section--flush-y bg-theme-bg text-theme-text">
-        <div className="container mb-v4">
+        <div className="container mb-v3">
           <div className="grid grid-rows-[auto_1fr]">
             <div className="card card--large grid-cursor col-span-full row-span-full max-lg:grid-rows-subgrid">
               <div
                 className={`col-span-full row-start-1 row-end-2 grid lg:row-start-1 lg:row-end-3 lg:items-center lg:pl-g3 lg:pr-g0.25 ${textR}`}
               >
-                <Reveal kind="right">
-                  <div className="max-w-prose w-full lg:justify-self-end">
+                <div className="max-w-prose w-full lg:justify-self-end">
                     <div className="type-base">
                       <h3 className="type-base text-pretty lg:type-md">AI that coordinates, not confuses</h3>
                       <div className="type-base text-pretty text-theme-text-sec lg:type-md">
@@ -180,7 +166,6 @@ export function FeatureRows() {
                       </a>
                     </div>
                   </div>
-                </Reveal>
               </div>
               <div
                 className={`max-lg:mt-g1.75 col-span-full row-start-2 row-end-3 grid lg:row-start-1 lg:row-end-3 lg:items-center ${visL}`}
@@ -193,9 +178,7 @@ export function FeatureRows() {
               <div
                 className={`max-lg:pt-v1 col-span-full row-start-2 row-end-3 grid items-end lg:row-start-2 lg:row-end-3 lg:items-center ${visL}`}
               >
-                <Reveal kind="left" delay={0.1}>
-                  <MediaImg src={captured.tab} />
-                </Reveal>
+                <MediaImg src={captured.tab} />
               </div>
             </div>
           </div>

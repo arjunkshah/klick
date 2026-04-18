@@ -1,6 +1,4 @@
 import { SITE_ORIGIN } from "../site";
-import { Reveal } from "./Reveal";
-import { RevealHeadingByWords } from "./RevealHeadingByWords";
 
 const pills = ["Auto", "Playbooks", "Claude", "GPT-4.1", "Gemini", "Command"];
 
@@ -8,16 +6,11 @@ export function FrontierSection() {
   return (
     <section className="section bg-theme-bg text-theme-text">
       <div className="container">
-        <div className="mx-auto mb-v2 max-w-prose-medium-wide text-center">
-          <RevealHeadingByWords
-            text="Stay on the frontier of team velocity"
-            as="h2"
-            className="type-md text-balance"
-          />
-        </div>
+        <h2 className="type-md mx-auto mb-v3 max-w-prose-medium-wide text-balance text-center">
+          Stay on the frontier of team velocity
+        </h2>
         <div className="grid grid-cols-1 items-stretch gap-g1 xl:grid-cols-3">
-          <Reveal kind="left" className="h-full min-h-0">
-            <div className="card flex h-full flex-col">
+          <div className="card flex h-full min-h-0 flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Route the right model to every playbook</h3>
@@ -86,10 +79,9 @@ export function FrontierSection() {
                 </div>
               </div>
             </figure>
-            </div>
-          </Reveal>
-          <Reveal kind="right" delay={0.06} className="h-full min-h-0">
-            <div className="card flex h-full flex-col">
+          </div>
+
+          <div className="card flex h-full min-h-0 flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Understand your org, not just your docs</h3>
@@ -111,16 +103,15 @@ export function FrontierSection() {
                 </p>
               </div>
             </figure>
-            </div>
-          </Reveal>
-          <Reveal kind="left" delay={0.12} className="h-full min-h-0">
-            <div className="card flex h-full flex-col">
+          </div>
+
+          <div className="card flex h-full min-h-0 flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Built for teams moving at agent speed</h3>
                 <div className="text-pretty text-theme-text-sec">
-                  Enterprise controls, audit trails, and human-in-the-loop approvals keep
-                  autonomous workflows safe as you scale.
+                  Enterprise controls, audit trails, and human-in-the-loop approvals keep autonomous
+                  workflows safe as you scale.
                 </div>
               </div>
             </div>
@@ -133,8 +124,7 @@ export function FrontierSection() {
                 />
               </div>
             </figure>
-            </div>
-          </Reveal>
+          </div>
         </div>
       </div>
     </section>

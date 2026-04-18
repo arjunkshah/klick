@@ -243,7 +243,6 @@ html[data-theme="dark"] {
     font-family: inherit;
   }
   main {
-    padding-top: var(--site-header-height);
     min-height: 70vh;
   }
   main.app-main {
@@ -302,7 +301,7 @@ html[data-theme="dark"] {
 }
 
 .section {
-  padding: var(--spacing-v3) var(--spacing-g2);
+  padding: var(--spacing-v2) var(--spacing-g2);
 }
 .section--flush-x {
   padding-inline: 0;
@@ -312,7 +311,7 @@ html[data-theme="dark"] {
 }
 main > .section:first-child,
 .section--first-child {
-  padding-block-start: var(--spacing-v5);
+  padding-block-start: var(--spacing-v4);
 }
 .section--headline {
   padding-block-start: var(--spacing-v3);
@@ -815,8 +814,14 @@ a.card:active {
 .mb-v1 {
   margin-bottom: var(--spacing-v1);
 }
+.mb-v2 {
+  margin-bottom: var(--spacing-v2);
+}
 .mb-v2\.5 {
   margin-bottom: var(--spacing-v2-5);
+}
+.mb-v3 {
+  margin-bottom: var(--spacing-v3);
 }
 .mb-v4 {
   margin-bottom: var(--spacing-v4);
