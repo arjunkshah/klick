@@ -1,4 +1,6 @@
 import { SITE_ORIGIN } from "../site";
+import { Reveal } from "./Reveal";
+import { RevealHeadingByWords } from "./RevealHeadingByWords";
 
 const pills = ["Auto", "Playbooks", "Claude", "GPT-4.1", "Gemini", "Command"];
 
@@ -6,11 +8,16 @@ export function FrontierSection() {
   return (
     <section className="section bg-theme-bg text-theme-text">
       <div className="container">
-        <div className="mx-auto mb-v2.5 max-w-prose-medium-wide text-center">
-          <h2 className="type-md text-balance">Stay on the frontier of team velocity</h2>
+        <div className="mx-auto mb-v2 max-w-prose-medium-wide text-center">
+          <RevealHeadingByWords
+            text="Stay on the frontier of team velocity"
+            as="h2"
+            className="type-md text-balance"
+          />
         </div>
         <div className="grid grid-cols-1 items-stretch gap-g1 xl:grid-cols-3">
-          <div className="card flex h-full flex-col">
+          <Reveal kind="left" className="h-full min-h-0">
+            <div className="card flex h-full flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Route the right model to every playbook</h3>
@@ -79,8 +86,10 @@ export function FrontierSection() {
                 </div>
               </div>
             </figure>
-          </div>
-          <div className="card flex h-full flex-col">
+            </div>
+          </Reveal>
+          <Reveal kind="right" delay={0.06} className="h-full min-h-0">
+            <div className="card flex h-full flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Understand your org, not just your docs</h3>
@@ -102,8 +111,10 @@ export function FrontierSection() {
                 </p>
               </div>
             </figure>
-          </div>
-          <div className="card flex h-full flex-col">
+            </div>
+          </Reveal>
+          <Reveal kind="left" delay={0.12} className="h-full min-h-0">
+            <div className="card flex h-full flex-col">
             <div className="type-base flex max-w-prose grow flex-col">
               <div>
                 <h3>Built for teams moving at agent speed</h3>
@@ -122,7 +133,8 @@ export function FrontierSection() {
                 />
               </div>
             </figure>
-          </div>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>

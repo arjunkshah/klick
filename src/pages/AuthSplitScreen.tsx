@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { mapFirebaseAuthError } from "../auth/mapFirebaseAuthError";
-import { AuthShader } from "../components/AuthShader";
+import { AuthTestimonialMarquees } from "../components/AuthTestimonialMarquees";
 import { GoogleMark } from "../components/GoogleMark";
 import { KlickLogo } from "../components/KlickLogo";
 import { isFirebaseConfigured } from "../lib/firebase";
@@ -39,42 +39,56 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div className="auth-split">
-      <div className="auth-split__shader" aria-hidden>
-        <AuthShader />
-        <div className="auth-split__shader-grain" />
+    <div className="auth-split bg-theme-bg text-theme-text">
+      <div className="auth-split__visual media-border-container relative h-full min-h-0 min-w-0 bg-theme-media-backdrop">
+        <img
+          src="/auth-hero.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          width={1536}
+          height={1024}
+          decoding="async"
+          fetchPriority="high"
+        />
+        <AuthTestimonialMarquees />
       </div>
 
-      <div className="auth-split__panel">
-        <Link
-          to="/"
-          className="auth-split__home text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-80"
-          aria-label="Klick home"
-        >
-          <KlickLogo className="text-[1.25rem] font-semibold tracking-[-0.03em] sm:text-[1.375rem]" />
-        </Link>
+      <div className="auth-split__panel bg-theme-bg">
+        <div className="container flex w-full max-w-prose flex-col">
+          <Link
+            to="/"
+            className="relative left-[-2px] top-[0.2rem] mb-v2.5 inline-flex items-center text-theme-text no-underline"
+            aria-label="Homepage"
+          >
+            <KlickLogo />
+          </Link>
 
-        <div className="auth-split__content">
-          <h1 className="auth-split__title">
+          <h1 className="type-md-lg text-balance mb-v1">
             {isSignup ? "Create account" : "Log in"}
           </h1>
 
           {!envOk ? (
-            <p className="auth-split__hint">
-              Add <code className="auth-split__code">VITE_FIREBASE_*</code> to{" "}
-              <code className="auth-split__code">.env.local</code>
+            <p className="type-sm mb-v1 text-theme-text-ter">
+              Add{" "}
+              <code className="type-product-sm rounded border border-theme-border-02 bg-theme-card-hex px-1 py-px">
+                VITE_FIREBASE_*
+              </code>{" "}
+              to{" "}
+              <code className="type-product-sm rounded border border-theme-border-02 bg-theme-card-hex px-1 py-px">
+                .env.local
+              </code>
             </p>
           ) : null}
 
           {error ? (
-            <div className="auth-split__error" role="alert">
+            <div className="auth-split__error mb-v1" role="alert">
               {error}
             </div>
           ) : null}
 
           <button
             type="button"
-            className="auth-split__google"
+            className="btn btn--ghost w-full justify-center"
             disabled={!configured || busy || !envOk}
             onClick={async () => {
               setBusy(true);
@@ -90,16 +104,16 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
               }
             }}
           >
-            <GoogleMark size={22} />
+            <GoogleMark size={20} />
             <span>Continue with Google</span>
           </button>
 
-          <div className="auth-split__rule" aria-hidden>
+          <div className="auth-split__rule py-v3/12" aria-hidden>
             <span>or</span>
           </div>
 
           <form
-            className="auth-split__form"
+            className="flex min-h-0 flex-col gap-g1"
             onSubmit={async (e) => {
               e.preventDefault();
               setBusy(true);
@@ -123,9 +137,9 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
           >
             {isSignup ? (
               <label className="auth-split__field">
-                <span className="auth-split__label">Workspace</span>
+                <span className="type-sm text-theme-text-sec">Workspace</span>
                 <input
-                  className="auth-split__input"
+                  className="app-input w-full"
                   value={workspace}
                   onChange={(ev) => setWorkspace(ev.target.value)}
                   required
@@ -136,9 +150,9 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
             ) : null}
 
             <label className="auth-split__field">
-              <span className="auth-split__label">Email</span>
+              <span className="type-sm text-theme-text-sec">Email</span>
               <input
-                className="auth-split__input"
+                className="app-input w-full"
                 value={email}
                 onChange={(ev) => setEmail(ev.target.value)}
                 type="email"
@@ -149,9 +163,9 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
             </label>
 
             <label className="auth-split__field">
-              <span className="auth-split__label">Password</span>
+              <span className="type-sm text-theme-text-sec">Password</span>
               <input
-                className="auth-split__input"
+                className="app-input w-full"
                 value={password}
                 onChange={(ev) => setPassword(ev.target.value)}
                 type="password"
@@ -164,7 +178,7 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
 
             <button
               type="submit"
-              className="auth-split__submit"
+              className="btn mt-v8/12 w-full justify-center"
               disabled={!configured || busy || !envOk}
             >
               {busy
@@ -177,18 +191,18 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
             </button>
           </form>
 
-          <p className="auth-split__switch">
+          <p className="type-sm mt-v1 text-theme-text-sec">
             {isSignup ? (
               <>
                 Already have an account?{" "}
-                <Link to="/login" state={loc.state} className="auth-split__switch-link">
+                <Link to="/login" state={loc.state} className="btn-tertiary">
                   Log in
                 </Link>
               </>
             ) : (
               <>
                 New here?{" "}
-                <Link to="/signup" state={loc.state} className="auth-split__switch-link">
+                <Link to="/signup" state={loc.state} className="btn-tertiary">
                   Create account
                 </Link>
               </>

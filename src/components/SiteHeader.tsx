@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { KlickLogo } from "./KlickLogo";
 import { SITE_ORIGIN } from "../site";
+import { KlickLogo } from "./KlickLogo";
+import { Reveal } from "./Reveal";
 
 export function SiteHeader() {
   return (
@@ -13,20 +14,25 @@ export function SiteHeader() {
           Skip to content
         </a>
         <div className="col-start-1 col-end-2 row-start-1 row-end-2">
-          <Link
-            className="relative left-[-2px] top-[0.2rem] inline-flex items-center text-theme-text"
-            aria-label="Homepage"
-            to="/"
-          >
-            <KlickLogo />
-            <span className="sr-only">Klick</span>
-          </Link>
+          <Reveal when="mount" kind="left" delay={0}>
+            <Link
+              className="relative left-[-2px] top-[0.2rem] inline-flex items-center text-theme-text"
+              aria-label="Homepage"
+              to="/"
+            >
+              <KlickLogo />
+              <span className="sr-only">Klick</span>
+            </Link>
+          </Reveal>
         </div>
         <div className="hidden lg:block">
-          <nav
+          <Reveal
+            when="mount"
+            kind="blurUp"
+            delay={0.06}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            role="navigation"
           >
+            <nav role="navigation">
             <ul className="flex items-center justify-center">
               <li className="relative flex items-center">
                 <a className="nav__link" href={SITE_ORIGIN + "/product"}>
@@ -55,9 +61,15 @@ export function SiteHeader() {
                 </span>
               </li>
             </ul>
-          </nav>
+            </nav>
+          </Reveal>
         </div>
-        <div className="col-start-2 col-end-4 flex items-center justify-end gap-1 lg:col-start-3 lg:col-end-4">
+        <Reveal
+          when="mount"
+          kind="right"
+          delay={0.1}
+          className="col-start-2 col-end-4 flex items-center justify-end gap-1 lg:col-start-3 lg:col-end-4"
+        >
           <Link className="btn--quinary" to="/login">
             Sign in
           </Link>
@@ -71,7 +83,7 @@ export function SiteHeader() {
           <Link className="btn btn--sm max-sm:hidden" to="/signup">
             Get started
           </Link>
-        </div>
+        </Reveal>
       </div>
     </header>
   );
