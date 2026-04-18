@@ -2,8 +2,37 @@
  * Dex API proxy — keeps GROQ_API_KEY on the server only.
  * Run alongside Vite: `npm run dev` (starts this + Vite).
  */
+import fs from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { Readable } from "node:stream";
+
+/** Same keys as Vite’s loadEnv — does not override vars already set in the shell. */
+function loadDotEnvFiles() {
+  for (const name of [".env.local", ".env"]) {
+    const filePath = path.resolve(process.cwd(), name);
+    if (!fs.existsSync(filePath)) continue;
+    const raw = fs.readFileSync(filePath, "utf8");
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq <= 0) continue;
+      const key = trimmed.slice(0, eq).trim();
+      let val = trimmed.slice(eq + 1).trim();
+      if (!key) continue;
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
+        val = val.slice(1, -1);
+      }
+      if (process.env[key] === undefined) process.env[key] = val;
+    }
+  }
+}
+
+loadDotEnvFiles();
 
 const PORT = Number(process.env.DEX_API_PORT || process.env.PORT || 8787);
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -128,6 +157,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   res.writeHead(404, { "Content-Type": "text/plain" }).end("Not found");
+});
+
+server.on("error", (err) => {
+  if (err && err.code === "EADDRINUSE") {
+    console.error(
+      `[dex-api] Port ${PORT} is already in use.\n` +
+        `  • Stop the other process (e.g. macOS: lsof -i :${PORT} then kill <PID>)\n` +
+        `  • Or use another port: DEX_API_PORT=8788 in .env.local (Vite reads DEX_API_PROXY / DEX_API_PORT for /api proxy)`,
+    );
+    process.exit(1);
+  }
+  throw err;
 });
 
 server.listen(PORT, () => {
