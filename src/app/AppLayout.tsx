@@ -1,10 +1,10 @@
+import { ChevronLeft } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { getSession } from "../auth/session";
 import { KlickLogo } from "../components/KlickLogo";
 import { useKlickStore } from "../data/store";
 import { ThemeAppearanceToggle } from "../components/ThemeAppearanceToggle";
-import { IconChevronRail } from "./components/NavIcons";
 import { useSidebarCollapsed } from "./hooks/useSidebarCollapsed";
 
 export function AppLayout() {
@@ -39,7 +39,12 @@ export function AppLayout() {
             aria-controls="app-rail"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <IconChevronRail collapsed={collapsed} />
+            <ChevronLeft
+              size={18}
+              strokeWidth={1.5}
+              className={`shrink-0 transition-transform duration-[var(--duration)] ease-[var(--ease-out-spring)] ${collapsed ? "rotate-180" : ""}`}
+              aria-hidden
+            />
           </button>
         </div>
 
