@@ -9,6 +9,13 @@ import { useKlickStore } from "../../data/store";
 
 type ProfileShape = { displayName: string; email: string };
 
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+}
+
 type EditableProps = {
   workspaceName: string;
   profile: ProfileShape;
@@ -137,53 +144,100 @@ export function SettingsPage() {
   const setWorkspaceName = useKlickStore((s) => s.setWorkspaceName);
   const setProfile = useKlickStore((s) => s.setProfile);
 
+  const syncLabel = isFirebaseConfigured() && user ? "Cloud" : "Local";
+  const integrationTotal =
+    Number(workspace.slackConnected) +
+    Number(Boolean(workspace.googleCalendarConnected)) +
+    Number(Boolean(workspace.githubConnected));
+
   return (
     <div className="app-page hub-page">
       <div className="today-page work-page work-page--wide">
         <header className="today-page__header">
-          <p className="today-page__workspace">{workspace.name}</p>
-          <div className="today-page__title-row">
-            <h1 className="today-page__title">Settings</h1>
-            <Link to="/app/integrations" className="today-link">
-              Integrations
-            </Link>
+          <div className="hub-hero">
+            <p className="today-page__workspace">{workspace.name}</p>
+            <div className="hub-hero__top">
+              <div className="hub-hero__title-wrap">
+                <h1 className="today-page__title">Settings</h1>
+                <p className="hub-lede">
+                  Tune how your workspace shows up across the app. Name and profile flow through{" "}
+                  <strong>Firebase</strong> with the rest of your Klick data.
+                </p>
+              </div>
+              <nav className="hub-pill-nav" aria-label="Workspace">
+                <span className="hub-pill-nav__item hub-pill-nav__item--current">Settings</span>
+                <Link to="/app/integrations" className="hub-pill-nav__item">
+                  Integrations
+                </Link>
+                <Link to="/app/playbooks" className="hub-pill-nav__item">
+                  Playbooks
+                </Link>
+              </nav>
+            </div>
+            <ul className="hub-stats" aria-label="Account overview">
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{syncLabel}</span>
+                <span className="hub-stats__label">Sync mode</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{integrationTotal}</span>
+                <span className="hub-stats__label">Integrations on</span>
+              </li>
+            </ul>
           </div>
-          <p className="hub-lede">
-            Workspace name and profile sync to <strong>Firebase</strong> with the rest of your Klick data.
-          </p>
         </header>
 
-        <div className="settings-stack">
-          <SettingsEditableFields
-            key={`${workspace.name}\0${profile.displayName}\0${profile.email}`}
-            workspaceName={workspace.name}
-            profile={profile}
-            user={user}
-            setWorkspaceName={setWorkspaceName}
-            setProfile={setProfile}
-          />
+        <div className="settings-layout">
+          <div className="settings-layout__main">
+            <SettingsEditableFields
+              key={`${workspace.name}\0${profile.displayName}\0${profile.email}`}
+              workspaceName={workspace.name}
+              profile={profile}
+              user={user}
+              setWorkspaceName={setWorkspaceName}
+              setProfile={setProfile}
+            />
 
-          <section className="settings-card" aria-labelledby="settings-theme-heading">
-            <h2 id="settings-theme-heading" className="settings-card__title">
-              Appearance
-            </h2>
-            <p className="settings-card__hint">Matches the control in the workspace rail.</p>
-            <div className="settings-theme-row">
-              <span className="settings-theme-label">Theme</span>
-              <ThemeAppearanceToggle />
+            <section className="settings-card" aria-labelledby="settings-theme-heading">
+              <h2 id="settings-theme-heading" className="settings-card__title">
+                Appearance
+              </h2>
+              <p className="settings-card__hint">Matches the control in the workspace rail. Changes apply instantly.</p>
+              <div className="settings-theme-row">
+                <span className="settings-theme-label">Theme</span>
+                <ThemeAppearanceToggle />
+              </div>
+            </section>
+
+            <section className="settings-card settings-card--muted" aria-labelledby="settings-data-heading">
+              <h2 id="settings-data-heading" className="settings-card__title">
+                Data &amp; privacy
+              </h2>
+              <p className="settings-card__text">
+                Issues, docs, Dex chats, playbooks, and runs live in Firestore under your account. Signing out clears local
+                session state; cloud data stays until you remove it in the Firebase console.
+              </p>
+            </section>
+          </div>
+
+          <aside className="settings-layout__aside" aria-label="Account summary">
+            <div className="settings-summary">
+              <p className="settings-summary__label">Signed in as</p>
+              <div className="settings-summary__profile">
+                <span className="settings-summary__avatar" aria-hidden>
+                  {initialsFromName(profile.displayName)}
+                </span>
+                <div>
+                  <p className="settings-summary__name">{profile.displayName || "Member"}</p>
+                  <p className="settings-summary__email">{profile.email || "—"}</p>
+                </div>
+              </div>
+              <div className="settings-summary__ws">
+                <strong>Active workspace</strong>
+                {workspace.name}
+              </div>
             </div>
-          </section>
-
-          <section className="settings-card settings-card--muted" aria-labelledby="settings-data-heading">
-            <h2 id="settings-data-heading" className="settings-card__title">
-              Data
-            </h2>
-            <p className="settings-card__text">
-              Issues, docs, Dex chats, playbooks, and runs are stored under your account in Firestore. Sign out from the
-              rail to clear local session state; your cloud workspace remains until you delete the project data in
-              Firebase.
-            </p>
-          </section>
+          </aside>
         </div>
       </div>
     </div>

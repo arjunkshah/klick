@@ -51,6 +51,12 @@ export function RunsPage() {
     [runs],
   );
 
+  const hubStats = useMemo(() => {
+    const running = runs.filter((r) => r.status === "running").length;
+    const completed = runs.filter((r) => r.status === "completed").length;
+    return { running, completed };
+  }, [runs]);
+
   const filtered = useMemo(() => {
     if (filter === "all") return sorted;
     return sorted.filter((r) => r.status === filter);
@@ -73,52 +79,92 @@ export function RunsPage() {
     [setParams],
   );
 
+  const selectedProgress = useMemo(() => {
+    if (!selected) return null;
+    const doneSteps = selected.stepLogs.filter((l) => l.status === "completed").length;
+    const totalSteps = selected.stepLogs.length;
+    const pct = totalSteps ? Math.round((doneSteps / totalSteps) * 100) : 0;
+    return { doneSteps, totalSteps, pct };
+  }, [selected]);
+
   return (
     <div className="app-page hub-page">
       <div className="today-page work-page work-page--wide">
         <header className="today-page__header">
-          <p className="today-page__workspace">{workspace.name}</p>
-          <div className="today-page__title-row">
-            <h1 className="today-page__title">Runs</h1>
-            <Link to="/app/playbooks" className="today-link">
-              Playbooks
-            </Link>
+          <div className="hub-hero">
+            <p className="today-page__workspace">{workspace.name}</p>
+            <div className="hub-hero__top">
+              <div className="hub-hero__title-wrap">
+                <h1 className="today-page__title">Runs</h1>
+                <p className="hub-lede">
+                  Step through <strong>human</strong> checkpoints and <strong>agent</strong> drafts. Approve or
+                  regenerate agent output before it ships.
+                </p>
+              </div>
+              <nav className="hub-pill-nav" aria-label="Automation">
+                <Link to="/app/playbooks" className="hub-pill-nav__item">
+                  Playbooks
+                </Link>
+                <span className="hub-pill-nav__item hub-pill-nav__item--current">Runs</span>
+                <Link to="/app/inbox" className="hub-pill-nav__item">
+                  Inbox
+                </Link>
+              </nav>
+            </div>
+            <ul className="hub-stats" aria-label="Runs overview">
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{sorted.length}</span>
+                <span className="hub-stats__label">All runs</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{hubStats.running}</span>
+                <span className="hub-stats__label">Active</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{hubStats.completed}</span>
+                <span className="hub-stats__label">Completed</span>
+              </li>
+            </ul>
           </div>
-          <p className="hub-lede">
-            Step through <strong>human</strong> checkpoints and <strong>agent</strong> drafts. Approve or reject agent
-            output to keep quality high.
-          </p>
         </header>
 
-        <div className="hub-filters" role="tablist" aria-label="Filter runs">
-          {(
-            [
-              ["all", "All"],
-              ["running", "Running"],
-              ["completed", "Done"],
-              ["cancelled", "Cancelled"],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={filter === key}
-              className={`hub-filter${filter === key ? " hub-filter--active" : ""}`}
-              onClick={() => setFilter(key)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="hub-filter-bar">
+          <div className="hub-filters" role="tablist" aria-label="Filter runs">
+            {(
+              [
+                ["all", "All"],
+                ["running", "Running"],
+                ["completed", "Done"],
+                ["cancelled", "Cancelled"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={filter === key}
+                className={`hub-filter${filter === key ? " hub-filter--active" : ""}`}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="hub-split">
           <aside className="hub-split__aside thin-scrollbar" aria-label="Run history">
+            <div className="hub-aside-head">
+              <h3 className="hub-aside-head__title">History</h3>
+              <span className="hub-aside-head__badge">{filtered.length}</span>
+            </div>
             {filtered.length === 0 ? (
               <div className="hub-empty hub-empty--compact">
-                <PlayCircle className="hub-empty__icon" size={26} strokeWidth={1.5} aria-hidden />
-                <p className="hub-empty__title">No runs here</p>
-                <p className="hub-empty__text">Start one from Playbooks.</p>
+                <div className="hub-empty__icon-wrap">
+                  <PlayCircle className="hub-empty__icon" size={22} strokeWidth={1.5} aria-hidden />
+                </div>
+                <p className="hub-empty__title">Nothing in this filter</p>
+                <p className="hub-empty__text">Try another tab, or start a fresh run from your playbooks.</p>
                 <Link to="/app/playbooks" className="work-btn work-btn--primary">
                   Open playbooks
                 </Link>
@@ -149,15 +195,38 @@ export function RunsPage() {
           </aside>
 
           <section className="hub-split__main" aria-label="Run detail">
-            {selected ? (
-              <div className="hub-panel">
-                <div className="hub-panel__head hub-panel__head--runs">
-                  <div>
-                    <h2 className="hub-run-title">{selected.playbookName}</h2>
+            {selected && selectedProgress ? (
+              <div className="hub-panel hub-panel--editor">
+                <div className="hub-run-head">
+                  <div className="hub-run-head__text">
+                    <div className="hub-run-title-row">
+                      <h2 className="hub-run-title">{selected.playbookName}</h2>
+                      <span className={`hub-run-badge hub-run-badge--${selected.status}`}>
+                        {statusLabel(selected.status)}
+                      </span>
+                    </div>
                     <p className="hub-run-sub">
                       Started {formatWhen(selected.startedAt)}
                       {selected.completedAt ? ` · Finished ${formatWhen(selected.completedAt)}` : null}
                     </p>
+                    <div
+                      className="hub-run-progress"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={selectedProgress.pct}
+                      aria-label="Run progress"
+                    >
+                      <div className="hub-run-progress__track">
+                        <div
+                          className="hub-run-progress__fill"
+                          style={{ width: `${selectedProgress.pct}%` }}
+                        />
+                      </div>
+                      <p className="hub-run-progress__label">
+                        {selectedProgress.doneSteps} of {selectedProgress.totalSteps} steps complete
+                      </p>
+                    </div>
                   </div>
                   {selected.status === "running" ? (
                     <button
@@ -236,9 +305,18 @@ export function RunsPage() {
                   })}
                 </ol>
               </div>
+            ) : sorted.length === 0 ? (
+              <div className="hub-panel hub-panel--muted">
+                <p className="hub-placeholder">No runs yet.</p>
+                <p className="hub-placeholder__sub">Start a playbook to see live steps, approvals, and agent output here.</p>
+                <Link to="/app/playbooks" className="work-btn work-btn--primary">
+                  Browse playbooks
+                </Link>
+              </div>
             ) : (
               <div className="hub-panel hub-panel--muted">
-                <p className="hub-placeholder">Select a run to inspect steps.</p>
+                <p className="hub-placeholder">Select a run on the left to open the timeline.</p>
+                <p className="hub-placeholder__sub">Active steps surface actions like approve, regenerate, or mark human work complete.</p>
               </div>
             )}
           </section>

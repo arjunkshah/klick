@@ -6,6 +6,7 @@ import { useKlickStore } from "../../data/store";
 
 type CardProps = {
   icon: LucideIcon;
+  category: string;
   name: string;
   description: string;
   connected: boolean;
@@ -37,7 +38,16 @@ function SlackWorkspaceLabelField({
   );
 }
 
-function IntegrationCard({ icon: Icon, name, description, connected, onToggle, disabled, footer }: CardProps) {
+function IntegrationCard({
+  icon: Icon,
+  category,
+  name,
+  description,
+  connected,
+  onToggle,
+  disabled,
+  footer,
+}: CardProps) {
   return (
     <article className={`integration-card${connected ? " integration-card--on" : ""}`}>
       <div className="integration-card__top">
@@ -45,8 +55,19 @@ function IntegrationCard({ icon: Icon, name, description, connected, onToggle, d
           <Icon size={22} strokeWidth={1.65} />
         </span>
         <div className="integration-card__head">
+          <span className="integration-card__tag">{category}</span>
           <h2 className="integration-card__title">{name}</h2>
           <p className="integration-card__desc">{description}</p>
+          <div className="integration-card__status-row">
+            <span className="integration-card__status-dot" aria-hidden />
+            <span
+              className={
+                connected ? "integration-card__status-label--on" : "integration-card__status-label--off"
+              }
+            >
+              {connected ? "Connected — syncing to workspace" : "Not connected — toggle to enable"}
+            </span>
+          </div>
         </div>
         <button
           type="button"
@@ -68,6 +89,11 @@ export function IntegrationsPage() {
   const workspace = useKlickStore((s) => s.workspace);
   const patchWorkspace = useKlickStore((s) => s.patchWorkspace);
 
+  const activeCount =
+    Number(workspace.slackConnected) +
+    Number(Boolean(workspace.googleCalendarConnected)) +
+    Number(Boolean(workspace.githubConnected));
+
   const commitSlackLabel = useCallback(
     (trimmed: string) => {
       patchWorkspace({ slackWorkspace: trimmed || undefined });
@@ -79,24 +105,46 @@ export function IntegrationsPage() {
     <div className="app-page hub-page">
       <div className="today-page work-page work-page--wide">
         <header className="today-page__header">
-          <p className="today-page__workspace">{workspace.name}</p>
-          <div className="today-page__title-row">
-            <h1 className="today-page__title">Integrations</h1>
-            <Link to="/app/settings" className="today-link">
-              Settings
-            </Link>
+          <div className="hub-hero">
+            <p className="today-page__workspace">{workspace.name}</p>
+            <div className="hub-hero__top">
+              <div className="hub-hero__title-wrap">
+                <h1 className="today-page__title">Integrations</h1>
+                <p className="hub-lede">
+                  Connect the tools your team already lives in. State persists to <strong>Firestore</strong> and feeds{" "}
+                  <strong>Dex</strong> context—swap toggles for real OAuth when you wire the backend.
+                </p>
+              </div>
+              <nav className="hub-pill-nav" aria-label="Workspace">
+                <Link to="/app/settings" className="hub-pill-nav__item">
+                  Settings
+                </Link>
+                <span className="hub-pill-nav__item hub-pill-nav__item--current">Integrations</span>
+                <Link to="/app/playbooks" className="hub-pill-nav__item">
+                  Playbooks
+                </Link>
+              </nav>
+            </div>
+            <ul className="hub-stats" aria-label="Integration overview">
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{activeCount}</span>
+                <span className="hub-stats__label">Active</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">3</span>
+                <span className="hub-stats__label">Core services</span>
+              </li>
+            </ul>
           </div>
-          <p className="hub-lede">
-            Connect tools your team already uses. Toggles persist with your workspace in{" "}
-            <strong>Firestore</strong>—wire real OAuth when you are ready; today they drive UI state and Dex context.
-          </p>
         </header>
 
+        <h2 className="hub-section-heading">Core services</h2>
         <div className="integrations-grid">
           <IntegrationCard
             icon={MessageSquare}
+            category="Messaging"
             name="Slack"
-            description="Mirror highlights to channels and show connection status across the app."
+            description="Mirror highlights to channels, surface connection status in Today, and keep Dex aware of your workspace."
             connected={workspace.slackConnected}
             onToggle={(next) => patchWorkspace({ slackConnected: next })}
             footer={
@@ -111,27 +159,35 @@ export function IntegrationsPage() {
           />
           <IntegrationCard
             icon={Calendar}
+            category="Calendar"
             name="Google Calendar"
-            description="Surface focus time and meetings in Today (context for Dex and planning)."
+            description="Pull focus time and meetings into Today so planning and Dex answers match how your day actually looks."
             connected={Boolean(workspace.googleCalendarConnected)}
             onToggle={(next) => patchWorkspace({ googleCalendarConnected: next })}
           />
           <IntegrationCard
             icon={GitBranch}
+            category="Code"
             name="GitHub"
-            description="Link PRs and automation signals to issues and playbooks."
+            description="Tie PRs, checks, and automation signals back to issues and playbook runs for a single narrative."
             connected={Boolean(workspace.githubConnected)}
             onToggle={(next) => patchWorkspace({ githubConnected: next })}
           />
+        </div>
+
+        <h2 className="hub-section-heading">Developers</h2>
+        <div className="integrations-grid">
           <article className="integration-card integration-card--muted">
             <div className="integration-card__top">
               <span className="integration-card__glyph" aria-hidden>
                 <Plug size={22} strokeWidth={1.65} />
               </span>
               <div className="integration-card__head">
-                <h2 className="integration-card__title">Custom API</h2>
+                <span className="integration-card__tag">Extensibility</span>
+                <h2 className="integration-card__title">Custom API & webhooks</h2>
                 <p className="integration-card__desc">
-                  Use your Dex and workspace JSON from the client; add server webhooks when you need outbound events.
+                  Ship workspace JSON to your own services from the client today; add authenticated webhooks when you need
+                  outbound events or server-side fan-out.
                 </p>
               </div>
             </div>

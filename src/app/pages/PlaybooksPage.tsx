@@ -45,6 +45,12 @@ export function PlaybooksPage() {
     [playbooks],
   );
 
+  const hubStats = useMemo(() => {
+    const totalSteps = playbooks.reduce((acc, p) => acc + p.steps.length, 0);
+    const running = runs.filter((r) => r.status === "running").length;
+    return { totalSteps, running };
+  }, [playbooks, runs]);
+
   const resolvedSelectedId = useMemo(() => {
     if (selectedId != null && sorted.some((p) => p.id === selectedId)) return selectedId;
     return sorted[0]?.id ?? null;
@@ -113,62 +119,97 @@ export function PlaybooksPage() {
     <div className="app-page hub-page">
       <div className="today-page work-page work-page--wide">
         <header className="today-page__header">
-          <p className="today-page__workspace">{workspace.name}</p>
-          <div className="today-page__title-row">
-            <h1 className="today-page__title">Playbooks</h1>
-            <Link to="/app/runs" className="today-link">
-              Runs
-            </Link>
+          <div className="hub-hero">
+            <p className="today-page__workspace">{workspace.name}</p>
+            <div className="hub-hero__top">
+              <div className="hub-hero__title-wrap">
+                <h1 className="today-page__title">Playbooks</h1>
+                <p className="hub-lede">
+                  Reusable human + agent workflows. Start a <strong>run</strong> anytime—progress and approvals land in{" "}
+                  <Link to="/app/inbox" className="today-link">
+                    Inbox
+                  </Link>
+                  .
+                </p>
+              </div>
+              <nav className="hub-pill-nav" aria-label="Automation">
+                <span className="hub-pill-nav__item hub-pill-nav__item--current">Playbooks</span>
+                <Link to="/app/runs" className="hub-pill-nav__item">
+                  Runs
+                </Link>
+                <Link to="/app/inbox" className="hub-pill-nav__item">
+                  Inbox
+                </Link>
+              </nav>
+            </div>
+            <ul className="hub-stats" aria-label="Playbooks overview">
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{sorted.length}</span>
+                <span className="hub-stats__label">Playbooks</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{hubStats.totalSteps}</span>
+                <span className="hub-stats__label">Total steps</span>
+              </li>
+              <li className="hub-stats__item">
+                <span className="hub-stats__value">{hubStats.running}</span>
+                <span className="hub-stats__label">Runs live</span>
+              </li>
+            </ul>
           </div>
-          <p className="hub-lede">
-            Reusable human + agent workflows. Start a <strong>run</strong> anytime—progress and approvals land in{" "}
-            <Link to="/app/inbox" className="today-link">
-              Inbox
-            </Link>
-            .
-          </p>
         </header>
 
         <div className="hub-split">
           <aside className="hub-split__aside thin-scrollbar" aria-label="Playbook list">
-            <div className="hub-toolbar hub-toolbar--stack">
-              <input
-                type="text"
-                className="hub-input"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder="New playbook name…"
-                aria-label="New playbook name"
-              />
-              <input
-                type="text"
-                className="hub-input"
-                value={draftDesc}
-                onChange={(e) => setDraftDesc(e.target.value)}
-                placeholder="Short description"
-                aria-label="New playbook description"
-              />
-              <button
-                type="button"
-                className="work-btn work-btn--primary hub-toolbar__btn"
-                disabled={!draftName.trim()}
-                onClick={() => {
-                  const pid = addPlaybook(draftName, draftDesc);
-                  setDraftName("");
-                  setDraftDesc("");
-                  setSelectedId(pid);
-                }}
-              >
-                <Plus size={16} strokeWidth={1.65} aria-hidden />
-                Create
-              </button>
+            <div className="hub-compose">
+              <h3 className="hub-compose__title">New playbook</h3>
+              <p className="hub-compose__hint">Give it a clear name. You will refine steps in the editor on the right.</p>
+              <div className="hub-toolbar hub-toolbar--stack">
+                <input
+                  type="text"
+                  className="hub-input"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="e.g. Weekly product review"
+                  aria-label="New playbook name"
+                />
+                <input
+                  type="text"
+                  className="hub-input"
+                  value={draftDesc}
+                  onChange={(e) => setDraftDesc(e.target.value)}
+                  placeholder="One-line purpose (optional)"
+                  aria-label="New playbook description"
+                />
+                <button
+                  type="button"
+                  className="work-btn work-btn--primary hub-toolbar__btn"
+                  disabled={!draftName.trim()}
+                  onClick={() => {
+                    const pid = addPlaybook(draftName, draftDesc);
+                    setDraftName("");
+                    setDraftDesc("");
+                    setSelectedId(pid);
+                  }}
+                >
+                  <Plus size={16} strokeWidth={1.65} aria-hidden />
+                  Create playbook
+                </button>
+              </div>
+            </div>
+
+            <div className="hub-aside-head">
+              <h3 className="hub-aside-head__title">Library</h3>
+              <span className="hub-aside-head__badge">{sorted.length}</span>
             </div>
 
             {sorted.length === 0 ? (
               <div className="hub-empty">
-                <BookOpen className="hub-empty__icon" size={28} strokeWidth={1.5} aria-hidden />
+                <div className="hub-empty__icon-wrap">
+                  <BookOpen className="hub-empty__icon" size={22} strokeWidth={1.5} aria-hidden />
+                </div>
                 <p className="hub-empty__title">No playbooks yet</p>
-                <p className="hub-empty__text">Create one above, or load two curated starters.</p>
+                <p className="hub-empty__text">Create your first workflow above, or load two curated starters to explore the editor.</p>
                 <button type="button" className="work-btn work-btn--primary" onClick={() => seedStarterPlaybooks()}>
                   Add starter playbooks
                 </button>
@@ -198,7 +239,7 @@ export function PlaybooksPage() {
 
           <section className="hub-split__main" aria-label="Playbook editor">
             {selected ? (
-              <div className="hub-panel">
+              <div className="hub-panel hub-panel--editor">
                 <div className="hub-panel__head">
                   <div className="hub-panel__head-text">
                     <label className="hub-field-label" htmlFor="pb-name">
@@ -248,6 +289,16 @@ export function PlaybooksPage() {
                   </div>
                 </div>
 
+                <div className="hub-panel-meta">
+                  <span>
+                    {selected.steps.length} step{selected.steps.length === 1 ? "" : "s"}
+                  </span>
+                  <span className="hub-panel-meta__dot" aria-hidden>
+                    ·
+                  </span>
+                  <span>Updated {formatUpdated(selected.updatedAt)}</span>
+                </div>
+
                 <label className="hub-field-label" htmlFor="pb-desc">
                   Description
                 </label>
@@ -269,7 +320,10 @@ export function PlaybooksPage() {
 
                 <ol className="hub-steps">
                   {selected.steps.map((step, idx) => (
-                    <li key={step.id} className="hub-step-card">
+                    <li
+                      key={step.id}
+                      className={`hub-step-card${step.type === "human" ? " hub-step-card--human" : ""}`}
+                    >
                       <div className="hub-step-card__bar">
                         <span className="hub-step-card__index">{idx + 1}</span>
                         <StepTypeBadge type={step.type} />
@@ -334,7 +388,8 @@ export function PlaybooksPage() {
               </div>
             ) : (
               <div className="hub-panel hub-panel--muted">
-                <p className="hub-placeholder">Select or create a playbook.</p>
+                <p className="hub-placeholder">Select a playbook from the library, or create a new one.</p>
+                <p className="hub-placeholder__sub">Runs you start from here show up under Runs with full step history.</p>
               </div>
             )}
           </section>
