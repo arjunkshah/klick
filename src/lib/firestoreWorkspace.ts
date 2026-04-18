@@ -11,6 +11,7 @@ import type {
   Issue,
   Playbook,
   PlaybookRun,
+  PrivateIntegrations,
   Project,
   Task,
   TeamMember,
@@ -124,6 +125,7 @@ export function defaultWorkspacePayload(
       slackWorkspace: undefined,
       googleCalendarConnected: false,
       githubConnected: false,
+      onboardingDone: false,
     },
     profile: { displayName, email },
     members: [
@@ -180,6 +182,10 @@ function normalizePayload(raw: Record<string, unknown>): WorkspacePayload | null
           : undefined,
       googleCalendarConnected: Boolean((w as { googleCalendarConnected?: boolean }).googleCalendarConnected),
       githubConnected: Boolean((w as { githubConnected?: boolean }).githubConnected),
+      onboardingDone:
+        typeof (w as { onboardingDone?: boolean }).onboardingDone === "boolean"
+          ? (w as { onboardingDone: boolean }).onboardingDone
+          : true,
     },
     profile: {
       displayName: String((p as { displayName?: string }).displayName ?? "You"),
@@ -256,4 +262,61 @@ export function flushWorkspaceSave(uid: string, payload: WorkspacePayload) {
   }
   lastSerialized = JSON.stringify(payload);
   return setDoc(workspaceDocRef(uid), payload);
+}
+
+function normalizePrivateIntegrations(raw: Record<string, unknown> | undefined): PrivateIntegrations {
+  if (!raw) return {};
+  const out: PrivateIntegrations = {};
+  const slackRaw = raw.slack;
+  if (slackRaw && typeof slackRaw === "object" && typeof (slackRaw as { accessToken?: unknown }).accessToken === "string") {
+    const s = slackRaw as Record<string, unknown>;
+    out.slack = {
+      accessToken: String(s.accessToken),
+      teamId: String(s.teamId ?? ""),
+      teamName: String(s.teamName ?? ""),
+      scope: String(s.scope ?? ""),
+      connectedAt: String(s.connectedAt ?? ""),
+    };
+  }
+  const ghRaw = raw.github;
+  if (ghRaw && typeof ghRaw === "object" && typeof (ghRaw as { accessToken?: unknown }).accessToken === "string") {
+    const g = ghRaw as Record<string, unknown>;
+    out.github = {
+      accessToken: String(g.accessToken),
+      login: String(g.login ?? ""),
+      scope: String(g.scope ?? ""),
+      connectedAt: String(g.connectedAt ?? ""),
+    };
+  }
+  const calRaw = raw.googleCalendar;
+  if (calRaw && typeof calRaw === "object" && typeof (calRaw as { accessToken?: unknown }).accessToken === "string") {
+    const c = calRaw as Record<string, unknown>;
+    out.googleCalendar = {
+      accessToken: String(c.accessToken),
+      refreshToken: typeof c.refreshToken === "string" ? c.refreshToken : undefined,
+      expiresAt: typeof c.expiresAt === "number" ? c.expiresAt : Number(c.expiresAt) || 0,
+      connectedAt: String(c.connectedAt ?? ""),
+    };
+  }
+  return out;
+}
+
+export function subscribePrivateIntegrations(
+  uid: string,
+  onData: (data: PrivateIntegrations) => void,
+  onError: (err: Error) => void,
+): Unsubscribe {
+  const db = getFirebaseDb();
+  if (!db) {
+    onData({});
+    return () => {};
+  }
+  const ref = doc(db, "users", uid, "klick", "privateIntegrations");
+  return onSnapshot(
+    ref,
+    (snap) => {
+      onData(snap.exists() ? normalizePrivateIntegrations(snap.data() as Record<string, unknown>) : {});
+    },
+    (err) => onError(err),
+  );
 }

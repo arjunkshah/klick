@@ -1,7 +1,101 @@
 import { Check, Circle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Issue, InboxItem, Priority, IssueState, TeamMember } from "../../data/types";
 import { useKlickStore } from "../../data/store";
+import type { CalendarListItem } from "../../lib/fetchCalendarEvents";
+import { fetchUpcomingCalendarEvents } from "../../lib/fetchCalendarEvents";
+
+function formatEventStart(iso: string): string {
+  try {
+    if (!iso.includes("T")) return iso;
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function TodayCalendarInner({
+  accessToken,
+}: {
+  accessToken: string;
+}) {
+  const [events, setEvents] = useState<CalendarListItem[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancel = false;
+    fetchUpcomingCalendarEvents(accessToken)
+      .then((ev) => {
+        if (!cancel) {
+          setEvents(ev);
+          setErr(null);
+        }
+      })
+      .catch((e) => {
+        if (!cancel) setErr(e instanceof Error ? e.message : "Calendar error");
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [accessToken]);
+
+  return (
+    <>
+      {err ? <p className="today-calendar__err">{err}</p> : null}
+      {!err && events.length === 0 ? (
+        <p className="today-empty" style={{ margin: 0 }}>
+          No upcoming events.
+        </p>
+      ) : null}
+      <ul className="today-calendar__list">
+        {events.map((e) => (
+          <li key={e.id} className="today-calendar__item">
+            <span className="today-calendar__title">
+              {e.htmlLink ? (
+                <a href={e.htmlLink} target="_blank" rel="noreferrer" className="today-link">
+                  {e.title}
+                </a>
+              ) : (
+                e.title
+              )}
+            </span>
+            <span className="today-calendar__time">{formatEventStart(e.start)}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function TodayCalendarPreview() {
+  const workspace = useKlickStore((s) => s.workspace);
+  const privateIntegrations = useKlickStore((s) => s.privateIntegrations);
+  const cal = privateIntegrations?.googleCalendar;
+  const token = cal?.accessToken;
+
+  if (!workspace.googleCalendarConnected || !token) return null;
+
+  return (
+    <section className="today-calendar" aria-labelledby="today-cal-label">
+      <div className="today-calendar__bar">
+        <div className="today-calendar__top">
+          <span id="today-cal-label" className="today-calendar__label">
+            Up next · Calendar
+          </span>
+          <Link to="/app/integrations" className="today-dex__link">
+            Manage
+          </Link>
+        </div>
+        <TodayCalendarInner accessToken={token} />
+      </div>
+    </section>
+  );
+}
 
 function issueRef(issue: Issue): string {
   const n = issue.id.replace(/\D/g, "") || "0";
@@ -317,6 +411,8 @@ export function TodayPage() {
             </time>
           </div>
         </header>
+
+        <TodayCalendarPreview />
 
         <section className="today-dex" aria-labelledby="today-dex-label">
           <div className="today-dex__bar">

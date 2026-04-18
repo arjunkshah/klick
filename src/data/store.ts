@@ -20,6 +20,7 @@ import type {
   Project,
   RunStepLog,
   Task,
+  PrivateIntegrations,
   TeamMember,
   WorkspaceMeta,
 } from "./types";
@@ -116,6 +117,9 @@ type KlickStore = {
   workspaceLoadError: string | null;
   remoteSaveSuspended: boolean;
 
+  /** OAuth tokens from `privateIntegrations` doc; null before first snapshot. */
+  privateIntegrations: PrivateIntegrations | null;
+
   workspace: WorkspaceMeta;
   profile: { displayName: string; email: string };
   members: TeamMember[];
@@ -137,6 +141,7 @@ type KlickStore = {
 
   setWorkspaceLoadState: (state: WorkspaceLoadState, error?: string | null) => void;
   hydrateFromFirestore: (payload: WorkspacePayload) => void;
+  hydratePrivateIntegrations: (data: PrivateIntegrations) => void;
   setRemoteSaveSuspended: (v: boolean) => void;
   getWorkspacePayload: () => WorkspacePayload;
 
@@ -217,6 +222,7 @@ const emptyWorkspace = (): Omit<
       KlickStore,
       | "setWorkspaceLoadState"
       | "hydrateFromFirestore"
+      | "hydratePrivateIntegrations"
       | "setRemoteSaveSuspended"
       | "getWorkspacePayload"
       | "setWorkspaceName"
@@ -261,12 +267,14 @@ const emptyWorkspace = (): Omit<
   workspaceLoadState: "idle",
   workspaceLoadError: null,
   remoteSaveSuspended: false,
+  privateIntegrations: null,
   workspace: {
     name: "My workspace",
     slackConnected: false,
     slackWorkspace: undefined,
     googleCalendarConnected: false,
     githubConnected: false,
+    onboardingDone: true,
   },
   profile: { displayName: "You", email: "" },
   members: [],
@@ -328,6 +336,8 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
     });
     queueMicrotask(() => get().setRemoteSaveSuspended(false));
   },
+
+  hydratePrivateIntegrations: (data) => set({ privateIntegrations: data }),
 
   getWorkspacePayload: () => toWorkspacePayload(get()),
 

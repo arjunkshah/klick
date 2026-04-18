@@ -6,6 +6,34 @@ export type WorkspaceMeta = {
   slackWorkspace?: string;
   googleCalendarConnected?: boolean;
   githubConnected?: boolean;
+  /**
+   * First-run onboarding. Missing in older Firestore docs = treated as complete.
+   * New workspaces start with false until the user finishes onboarding.
+   */
+  onboardingDone?: boolean;
+};
+
+/** Sensitive tokens — Firestore doc `users/{uid}/klick/privateIntegrations` (never in Dex payload). */
+export type PrivateIntegrations = {
+  slack?: {
+    accessToken: string;
+    teamId: string;
+    teamName: string;
+    scope: string;
+    connectedAt: string;
+  };
+  github?: {
+    accessToken: string;
+    login: string;
+    scope: string;
+    connectedAt: string;
+  };
+  googleCalendar?: {
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt: number;
+    connectedAt: string;
+  };
 };
 
 export type IssueState = "backlog" | "todo" | "in_progress" | "done" | "canceled";

@@ -71,7 +71,12 @@ Dex in dev: Vite proxies `/api` to the local API (see `vite.config.ts`).
 ## Deploying
 
 - **Frontend:** Any static host (e.g. Vercel, Netlify). Set all `VITE_FIREBASE_*` in the host’s environment.  
-- **Dex + Groq in production:** The repo’s dev server is for local use. For production, expose a server-side endpoint that holds `GROQ_API_KEY` and proxies to Groq (or adapt `server/index.js` to your host’s serverless/runtime model).
+- **Dex in production:** Vercel serves `api/dex/chat.js` (Gemini). Set `geminikey` (and optional `GEMINI_MODEL`) in the project env.  
+- **Slack & GitHub OAuth:** Requires Vercel (or `vercel dev`) so `/api/integrations/*` runs. Set `FIREBASE_SERVICE_ACCOUNT_JSON` (full service account JSON string), `INTEGRATION_OAUTH_SECRET` (long random string), `SLACK_CLIENT_ID` / `SLACK_CLIENT_SECRET`, `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`, and optional `APP_ORIGIN` (e.g. `https://your-domain.com`). Register redirect URLs:  
+  - `https://<host>/api/integrations/slack/callback`  
+  - `https://<host>/api/integrations/github/callback`  
+  Deploy updated `firestore.rules` so `users/{uid}/klick/*` documents remain owner-scoped.  
+- **Google Calendar:** No extra server env — users connect via **Integrations** (Firebase `linkWithPopup` + Calendar readonly scope); tokens live in `users/{uid}/klick/privateIntegrations`.
 
 ## Repository layout
 

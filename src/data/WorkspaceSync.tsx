@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "../auth/useAuth";
 import { isFirebaseConfigured } from "../lib/firebase";
-import { saveWorkspaceDebounced, subscribeWorkspace } from "../lib/firestoreWorkspace";
+import {
+  saveWorkspaceDebounced,
+  subscribePrivateIntegrations,
+  subscribeWorkspace,
+} from "../lib/firestoreWorkspace";
 import { useKlickStore } from "./store";
 
 export function WorkspaceSync() {
@@ -45,6 +49,45 @@ export function WorkspaceSync() {
       unsubRef.current = null;
     };
   }, [configured, uid, status]);
+
+  useEffect(() => {
+    if (!configured || !uid) {
+      useKlickStore.getState().hydratePrivateIntegrations({});
+      return;
+    }
+    const unsub = subscribePrivateIntegrations(
+      uid,
+      (data) => {
+        useKlickStore.getState().hydratePrivateIntegrations(data);
+        const s = useKlickStore.getState();
+        const slackOk = Boolean(data.slack?.accessToken);
+        const ghOk = Boolean(data.github?.accessToken);
+        const cal = data.googleCalendar;
+        const calOk = Boolean(
+          cal?.accessToken && (!cal.expiresAt || cal.expiresAt > Date.now() + 30_000),
+        );
+        const w = s.workspace;
+        const nextSlackWorkspace =
+          slackOk && data.slack?.teamName ? data.slack.teamName : undefined;
+        if (
+          w.slackConnected !== slackOk ||
+          w.githubConnected !== ghOk ||
+          w.googleCalendarConnected !== calOk ||
+          (slackOk && nextSlackWorkspace !== w.slackWorkspace) ||
+          (!slackOk && w.slackWorkspace)
+        ) {
+          s.patchWorkspace({
+            slackConnected: slackOk,
+            slackWorkspace: slackOk ? nextSlackWorkspace : undefined,
+            githubConnected: ghOk,
+            googleCalendarConnected: calOk,
+          });
+        }
+      },
+      () => {},
+    );
+    return () => unsub();
+  }, [configured, uid]);
 
   useEffect(() => {
     if (!configured || !uid) return;

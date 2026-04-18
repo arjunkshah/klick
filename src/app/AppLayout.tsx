@@ -14,7 +14,7 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { getSession } from "../auth/session";
 import { KlickLogo } from "../components/KlickLogo";
@@ -61,8 +61,16 @@ function linkClass({ isActive }: { isActive: boolean }) {
   return isActive ? "app-rail__link app-rail__link--active" : "app-rail__link";
 }
 
+const ONBOARDING_ALLOWED = new Set([
+  "/app/onboarding",
+  "/app/integrations",
+  "/app/dex",
+  "/app/settings",
+]);
+
 export function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const workspace = useKlickStore((s) => s.workspace);
   const workspaceLoadState = useKlickStore((s) => s.workspaceLoadState);
   const workspaceLoadError = useKlickStore((s) => s.workspaceLoadError);
@@ -91,6 +99,15 @@ export function AppLayout() {
       {renderNav(items)}
     </div>
   );
+
+  if (
+    firebaseOk &&
+    workspaceLoadState === "ready" &&
+    workspace.onboardingDone === false &&
+    !ONBOARDING_ALLOWED.has(location.pathname)
+  ) {
+    return <Navigate to="/app/onboarding" replace />;
+  }
 
   return (
     <div className="app-shell">

@@ -4844,6 +4844,196 @@ html[data-theme="dark"] .docs-cmd-menu {
 .integration-card__status-label--off {
   color: var(--color-theme-text-tertiary);
 }
+.integration-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.integration-card__actions .work-btn--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.integration-card__note {
+  margin: 0.5rem 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-theme-text-sec);
+}
+@keyframes integration-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.integration-btn-spinner {
+  animation: integration-spin 0.75s linear infinite;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+.integration-flash {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in oklab, #22c55e 35%, var(--color-theme-border-02));
+  background: color-mix(in oklab, #22c55e 9%, var(--color-theme-bg));
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-theme-text);
+}
+.integration-flash--err {
+  border-color: color-mix(in oklab, #ef4444 40%, var(--color-theme-border-02));
+  background: color-mix(in oklab, #ef4444 10%, var(--color-theme-bg));
+}
+.integration-flash__dismiss {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-theme-border-02);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-theme-text-sec);
+  cursor: pointer;
+}
+.integration-setup-hint {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+.integration-setup-hint__title {
+  margin: 0 0 0.45rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-theme-text-tertiary);
+}
+.integration-setup-hint__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-theme-text-sec);
+}
+.integration-setup-hint__list li {
+  margin: 0.25rem 0;
+}
+.integration-setup-hint__code {
+  font-size: 11px;
+  padding: 0.08rem 0.28rem;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-theme-fg) 6%, var(--color-theme-bg));
+  border: 1px solid var(--color-theme-border-02);
+}
+.today-calendar {
+  margin-bottom: 1.25rem;
+}
+.today-calendar__bar {
+  border: 1px solid var(--color-theme-border-02);
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem 0.75rem;
+  background: color-mix(in oklab, var(--color-theme-fg) 2.5%, var(--color-theme-bg));
+}
+.today-calendar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+.today-calendar__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-theme-text-tertiary);
+}
+.today-calendar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.today-calendar__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 13px;
+  color: var(--color-theme-text);
+}
+.today-calendar__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-theme-text-tertiary);
+}
+.today-calendar__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.today-calendar__err {
+  margin: 0.35rem 0 0;
+  font-size: 12px;
+  color: color-mix(in oklab, #ef4444 75%, var(--color-theme-text));
+}
+.onboarding-page {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.onboarding-steps {
+  display: flex;
+  gap: 0.35rem;
+  margin: 1rem 0 1.25rem;
+}
+.onboarding-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-theme-border-02);
+}
+.onboarding-step-dot--active {
+  background: var(--color-theme-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-theme-accent) 22%, transparent);
+}
+.onboarding-step-dot--done {
+  background: color-mix(in oklab, #22c55e 70%, var(--color-theme-text));
+}
+.onboarding-card {
+  padding: 1.15rem 1.2rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-theme-border-02);
+  background: var(--color-theme-bg);
+  margin-bottom: 1rem;
+}
+.onboarding-card__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.onboarding-card__text {
+  margin: 0 0 1rem;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-theme-text-sec);
+}
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
 .integration-card__footer {
   padding: 0 1.1rem 1.05rem;
 }

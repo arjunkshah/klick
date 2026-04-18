@@ -4,6 +4,7 @@ import { AppLayout } from "./app/AppLayout";
 import { DexPage } from "./app/pages/DexPage";
 import { DocsPage } from "./app/pages/DocsPage";
 import { IntegrationsPage } from "./app/pages/IntegrationsPage";
+import { OnboardingPage } from "./app/pages/OnboardingPage";
 import { InboxPage } from "./app/pages/InboxPage";
 import { PeoplePage } from "./app/pages/PeoplePage";
 import { PlaybooksPage } from "./app/pages/PlaybooksPage";
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="dex" element={<DexPage />} />
           <Route path="playbooks" element={<PlaybooksPage />} />
           <Route path="runs" element={<RunsPage />} />
+          <Route path="onboarding" element={<OnboardingPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
