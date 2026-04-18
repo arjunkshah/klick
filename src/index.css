@@ -1065,6 +1065,10 @@ a.card:active {
 .app-rail[data-collapsed="true"] .app-rail__meta {
   display: none;
 }
+.app-rail__body {
+  flex: 1;
+  min-height: 0;
+}
 .app-rail-toggle {
   display: inline-flex;
   align-items: center;
@@ -1089,45 +1093,6 @@ a.card:active {
 .app-rail-toggle:focus-visible {
   outline: 2px solid var(--color-theme-accent-muted);
   outline-offset: 1px;
-}
-.app-rail__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding: 0.375rem 0 1rem;
-}
-.app-rail-section {
-  margin-top: 1.125rem;
-}
-.app-rail-section:first-of-type {
-  margin-top: 0.25rem;
-}
-.sidebar-nav-heading {
-  margin: 0 0 0.375rem;
-  padding-inline: 0.75rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-theme-text-tertiary);
-}
-.app-rail[data-collapsed="true"] .sidebar-nav-heading {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-.app-rail[data-collapsed="true"] .app-rail-section {
-  margin-top: 0.5rem;
-}
-.app-rail[data-collapsed="true"] .app-rail-section:first-of-type {
-  margin-top: 0.25rem;
 }
 .app-rail__footer {
   flex-shrink: 0;
@@ -1291,90 +1256,10 @@ html[data-theme="dark"] .theme-appearance-pill__track {
   min-height: 0;
   overflow: auto;
 }
-.app-canvas-empty {
-  min-height: 100%;
-  background: var(--color-theme-bg);
-}
-.app-nav-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0.375rem 0.125rem;
-  padding: 0.4375rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: 1.35;
-  letter-spacing: var(--tracking-sm);
-  color: var(--color-theme-text-sec);
-  text-decoration: none;
-  transition: background-color 0.14s ease, color 0.14s ease;
-}
-.app-nav-icon {
-  display: flex;
-  flex-shrink: 0;
-  opacity: 0.85;
-  transition: opacity 0.14s ease;
-}
-.app-nav-link:hover .app-nav-icon {
-  opacity: 1;
-}
-.app-nav-link--active .app-nav-icon {
-  opacity: 1;
-  color: var(--color-theme-text);
-}
-.app-nav-label {
-  min-width: 0;
+.app-canvas--void {
   flex: 1;
-  transition: opacity 0.18s ease;
-}
-.app-rail[data-collapsed="true"] .app-nav-link {
-  justify-content: center;
-  margin-inline: 0.25rem;
-  padding-inline: 0.375rem;
-}
-.app-rail[data-collapsed="true"] .app-nav-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-.app-rail[data-collapsed="true"] .app-nav-link .app-inbox-badge {
-  position: absolute;
-  top: 0.1rem;
-  right: 0.1rem;
-  min-width: 0.875rem;
-  height: 0.875rem;
-  padding: 0 0.2rem;
-  font-size: 0.55rem;
-  line-height: 0.875rem;
-}
-.app-nav-link:hover {
-  background: color-mix(in oklab, var(--color-theme-fg) 4.5%, transparent);
-  color: var(--color-theme-text);
-}
-.app-nav-link--active {
-  background: color-mix(in oklab, var(--color-theme-accent) 11%, var(--color-theme-bg));
-  color: var(--color-theme-text);
-  font-weight: 500;
-}
-html[data-theme="dark"] .app-nav-link--active {
-  background: color-mix(in oklab, var(--color-theme-accent) 14%, var(--color-theme-bg));
-}
-.app-nav-link--active:hover {
-  background: color-mix(in oklab, var(--color-theme-accent) 15%, var(--color-theme-bg));
-}
-.app-nav-link:active {
-  opacity: 0.92;
-}
-.app-nav-link--active:active {
-  opacity: 1;
+  min-width: 0;
+  background: var(--color-theme-bg);
 }
 .auth-page {
   min-height: 100vh;
@@ -1800,26 +1685,14 @@ html[data-theme="dark"] .klick-thread-list {
   .card--interactive,
   a.card,
   .app-rail,
-  .app-nav-link,
-  .app-nav-icon,
   .app-rail-toggle,
   .btn,
   .btn--secondary,
   .btn--ghost,
   .app-input,
-  .klick-thread-list li,
   .theme-appearance-pill__thumb,
   .auth-field-input {
     transition: none !important;
-    animation: none !important;
-  }
-  .klick-stagger > * {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .palette-backdrop,
-  .palette-panel {
     animation: none !important;
   }
   a.card:hover:not(.card--feature),
@@ -1830,8 +1703,7 @@ html[data-theme="dark"] .klick-thread-list {
   }
   .btn:active,
   .btn--secondary:active,
-  .btn--ghost:active,
-  .app-nav-link:active {
+  .btn--ghost:active {
     transform: none !important;
   }
 }
