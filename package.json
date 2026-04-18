@@ -1,8 +1,14 @@
 {
-  "name": "cursorklicks",
+  "name": "klick",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Open-source team productivity UI demo (React, Firebase, Dex/Groq)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arjunkshah/klick.git"
+  },
   "scripts": {
     "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:api\"",
     "dev:vite": "vite",
