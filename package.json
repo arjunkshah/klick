@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "push:github": "git push origin main"
   },
   "dependencies": {
     "firebase": "^11.10.0",
