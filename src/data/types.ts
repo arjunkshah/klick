@@ -111,6 +111,15 @@ export type PlaybookRun = {
   stepLogs: RunStepLog[];
 };
 
+export type DexMessageRole = "user" | "assistant";
+
+export type DexMessage = {
+  id: string;
+  role: DexMessageRole;
+  content: string;
+  createdAt: string;
+};
+
 export type MemberPresence = "active" | "away" | "offline";
 
 export type TeamMember = {

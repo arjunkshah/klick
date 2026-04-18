@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  /** Base URL for Dex API when not same-origin (optional). */
+  readonly VITE_DEX_API_ORIGIN?: string;
   readonly VITE_FIREBASE_API_KEY?: string;
   readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
   readonly VITE_FIREBASE_PROJECT_ID?: string;

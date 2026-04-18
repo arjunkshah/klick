@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Open-source team productivity UI demo (React, Firebase, Dex/Groq)",
+  "description": "Team productivity UI (React, Firebase, Dex + Gemini)",
   "license": "MIT",
   "repository": {
     "type": "git",

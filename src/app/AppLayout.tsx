@@ -19,6 +19,7 @@ import { useAuth } from "../auth/useAuth";
 import { getSession } from "../auth/session";
 import { KlickLogo } from "../components/KlickLogo";
 import { useKlickStore } from "../data/store";
+import { isFirebaseConfigured } from "../lib/firebase";
 import { ThemeAppearanceToggle } from "../components/ThemeAppearanceToggle";
 
 type NavItem = {
@@ -63,7 +64,10 @@ function linkClass({ isActive }: { isActive: boolean }) {
 export function AppLayout() {
   const navigate = useNavigate();
   const workspace = useKlickStore((s) => s.workspace);
+  const workspaceLoadState = useKlickStore((s) => s.workspaceLoadState);
+  const workspaceLoadError = useKlickStore((s) => s.workspaceLoadError);
   const inboxUnread = useKlickStore((s) => s.inbox.filter((i) => !i.read).length);
+  const firebaseOk = isFirebaseConfigured();
   const { user, signOutUser } = useAuth();
   const session = getSession();
   const accountEmail = user?.email ?? session?.email;
@@ -129,7 +133,20 @@ export function AppLayout() {
       </aside>
 
       <main className="app-canvas">
-        <Outlet />
+        <div className="app-canvas__stack">
+          {firebaseOk && workspaceLoadState === "loading" ? (
+            <div className="app-sync-banner app-sync-banner--loading" role="status" aria-live="polite">
+              Syncing workspace from Firebase…
+            </div>
+          ) : null}
+          {firebaseOk && workspaceLoadState === "error" ? (
+            <div className="app-sync-banner app-sync-banner--error" role="alert">
+              Workspace sync failed{workspaceLoadError ? `: ${workspaceLoadError}` : ""}. Enable Firestore and
+              deploy rules (see repo <code className="app-sync-banner__code">firestore.rules</code>).
+            </div>
+          ) : null}
+          <Outlet />
+        </div>
       </main>
     </div>
   );

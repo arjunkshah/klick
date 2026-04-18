@@ -1,13 +1,11 @@
 /**
- * Dex API proxy — keeps GROQ_API_KEY on the server only.
- * Run alongside Vite: `npm run dev` (starts this + Vite).
+ * Dex API — Gemini 2.5 Flash. Local dev: `npm run dev` (with Vite proxy /api → this server).
+ * Env: geminikey (or GEMINIKEY). Optional: GEMINI_MODEL (default gemini-2.5-flash)
  */
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { Readable } from "node:stream";
 
-/** Same keys as Vite’s loadEnv — does not override vars already set in the shell. */
 function loadDotEnvFiles() {
   for (const name of [".env.local", ".env"]) {
     const filePath = path.resolve(process.cwd(), name);
@@ -35,8 +33,11 @@ function loadDotEnvFiles() {
 loadDotEnvFiles();
 
 const PORT = Number(process.env.DEX_API_PORT || process.env.PORT || 8787);
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL_DEFAULT = "openai/gpt-oss-120b";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+function getKey() {
+  return (process.env.geminikey || process.env.GEMINIKEY || "").trim();
+}
 
 function json(res, status, obj) {
   const s = JSON.stringify(obj);
@@ -45,6 +46,16 @@ function json(res, status, obj) {
     "Content-Length": Buffer.byteLength(s),
   });
   res.end(s);
+}
+
+function toGeminiContents(messages) {
+  const contents = [];
+  for (const m of messages) {
+    if (!m || typeof m.content !== "string") continue;
+    const role = m.role === "assistant" ? "model" : "user";
+    contents.push({ role, parts: [{ text: m.content }] });
+  }
+  return contents;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -59,9 +70,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && req.url === "/api/dex/chat") {
-    const key = process.env.GROQ_API_KEY?.trim();
+    const key = getKey();
     if (!key) {
-      json(res, 500, { error: "Server is not configured (missing GROQ_API_KEY)." });
+      json(res, 500, { error: "Missing geminikey in environment (.env.local or shell)." });
       return;
     }
 
@@ -85,28 +96,38 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const { messages } = body;
+    const { messages, workspaceContext } = body;
     if (!Array.isArray(messages) || messages.length === 0) {
       json(res, 400, { error: "messages must be a non-empty array" });
       return;
     }
 
-    const model = typeof body.model === "string" ? body.model : MODEL_DEFAULT;
+    const systemText = `You are **Dex**, a concise workspace copilot for the Klick app.
+Rules:
+- Ground answers in WORKSPACE_JSON. If data is missing, say so.
+- Use short markdown (**bold**, bullets). No filler.
+- Do not invent issues, tasks, or people not in WORKSPACE_JSON.
 
-    let groqRes;
+WORKSPACE_JSON:
+${typeof workspaceContext === "string" ? workspaceContext : JSON.stringify(workspaceContext ?? {})}`;
+
+    const contents = toGeminiContents(messages);
+    if (contents.length === 0) {
+      json(res, 400, { error: "No valid messages" });
+      return;
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+
+    let geminiRes;
     try {
-      groqRes = await fetch(GROQ_URL, {
+      geminiRes = await fetch(url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model,
-          messages,
-          stream: true,
-          temperature: 0.7,
-          max_tokens: 8192,
+          systemInstruction: { parts: [{ text: systemText }] },
+          contents,
+          generationConfig: { temperature: 0.65, maxOutputTokens: 8192 },
         }),
       });
     } catch (e) {
@@ -114,45 +135,34 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (!groqRes.ok) {
-      let detail = groqRes.statusText;
-      try {
-        const j = await groqRes.json();
-        if (j?.error?.message) detail = j.error.message;
-      } catch {
-        try {
-          detail = await groqRes.text();
-        } catch {
-          /* ignore */
-        }
-      }
-      json(res, groqRes.status >= 500 ? 502 : 400, {
-        error: detail || `Groq error ${groqRes.status}`,
+    const raw = await geminiRes.text();
+    if (!geminiRes.ok) {
+      json(res, geminiRes.status >= 500 ? 502 : 400, {
+        error: raw.slice(0, 800) || `Gemini HTTP ${geminiRes.status}`,
       });
       return;
     }
 
-    if (!groqRes.body) {
-      json(res, 502, { error: "Empty upstream response" });
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      json(res, 502, { error: "Invalid Gemini response" });
       return;
     }
 
-    res.writeHead(200, {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    });
+    const text =
+      parsed?.candidates?.[0]?.content?.parts?.map((p) => p.text).filter(Boolean).join("") || "";
 
-    const nodeIn = Readable.fromWeb(groqRes.body);
-    nodeIn.pipe(res);
-    nodeIn.on("error", () => {
-      try {
-        res.destroy();
-      } catch {
-        /* ignore */
-      }
-    });
+    if (!text) {
+      const block = parsed?.promptFeedback?.blockReason;
+      json(res, 400, {
+        error: block ? `Blocked: ${block}` : "Empty model response",
+      });
+      return;
+    }
+
+    json(res, 200, { reply: text });
     return;
   }
 
@@ -161,16 +171,12 @@ const server = http.createServer(async (req, res) => {
 
 server.on("error", (err) => {
   if (err && err.code === "EADDRINUSE") {
-    console.error(
-      `[dex-api] Port ${PORT} is already in use.\n` +
-        `  • Stop the other process (e.g. macOS: lsof -i :${PORT} then kill <PID>)\n` +
-        `  • Or use another port: DEX_API_PORT=8788 in .env.local (Vite reads DEX_API_PROXY / DEX_API_PORT for /api proxy)`,
-    );
+    console.error(`[dex-api] Port ${PORT} in use. Set DEX_API_PORT in .env.local`);
     process.exit(1);
   }
   throw err;
 });
 
 server.listen(PORT, () => {
-  console.log(`[dex-api] http://localhost:${PORT} (POST /api/dex/chat)`);
+  console.log(`[dex-api] Gemini http://localhost:${PORT} (POST /api/dex/chat)`);
 });

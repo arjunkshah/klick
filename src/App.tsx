@@ -2,6 +2,15 @@ import { AnimatePresence } from "framer-motion";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppLayout } from "./app/AppLayout";
 import { AppPlaceholderPage } from "./app/pages/AppPlaceholderPage";
+import { DocsPage } from "./app/pages/DocsPage";
+import { DexPage } from "./app/pages/DexPage";
+import { PeoplePage } from "./app/pages/PeoplePage";
+import { InboxPage } from "./app/pages/InboxPage";
+import { IssuesPage } from "./app/pages/IssuesPage";
+import { ProjectsPage } from "./app/pages/ProjectsPage";
+import { TasksPage } from "./app/pages/TasksPage";
+import { ThreadsPage } from "./app/pages/ThreadsPage";
+import { TodayPage } from "./app/pages/TodayPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { PageTransition } from "./components/PageTransition";
 import { LandingPage } from "./LandingPage";
@@ -46,15 +55,15 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AppPlaceholderPage title="Today" />} />
-          <Route path="inbox" element={<AppPlaceholderPage title="Inbox" />} />
-          <Route path="threads" element={<AppPlaceholderPage title="Threads" />} />
-          <Route path="issues" element={<AppPlaceholderPage title="Issues" />} />
-          <Route path="tasks" element={<AppPlaceholderPage title="Tasks" />} />
-          <Route path="projects" element={<AppPlaceholderPage title="Projects" />} />
-          <Route path="docs" element={<AppPlaceholderPage title="Docs" />} />
-          <Route path="people" element={<AppPlaceholderPage title="People" />} />
-          <Route path="dex" element={<AppPlaceholderPage title="Dex" />} />
+          <Route index element={<TodayPage />} />
+          <Route path="inbox" element={<InboxPage />} />
+          <Route path="threads" element={<ThreadsPage />} />
+          <Route path="issues" element={<IssuesPage />} />
+          <Route path="tasks" element={<TasksPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
+          <Route path="docs" element={<DocsPage />} />
+          <Route path="people" element={<PeoplePage />} />
+          <Route path="dex" element={<DexPage />} />
           <Route path="playbooks" element={<AppPlaceholderPage title="Playbooks" />} />
           <Route path="runs" element={<AppPlaceholderPage title="Runs" />} />
           <Route path="integrations" element={<AppPlaceholderPage title="Integrations" />} />

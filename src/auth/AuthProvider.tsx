@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       signOutUser: async () => {
         clearSession();
+        useKlickStore.getState().resetSessionState();
         if (auth) await signOut(auth);
       },
     }),
