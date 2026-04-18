@@ -7,29 +7,55 @@ void main() {
 }
 `;
 
+/** Aurora-style gradient: soft orbs, flowing palette, subtle grain in overlay CSS. */
 const FRAG = `
-precision mediump float;
+precision highp float;
 uniform float u_time;
 uniform vec2 u_resolution;
 
+vec3 palette(float t) {
+  vec3 a = vec3(0.22, 0.28, 0.62);
+  vec3 b = vec3(0.72, 0.38, 0.58);
+  vec3 c = vec3(0.32, 0.62, 0.78);
+  vec3 d = vec3(0.58, 0.42, 0.68);
+  return a + b * cos(6.28318 * (c * t + d));
+}
+
+float glow(vec2 p, vec2 c, float r) {
+  float d = length(p - c);
+  return r / (d + r * 3.5);
+}
+
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-  float t = u_time * 0.11;
+  vec2 p = uv * 2.0 - 1.0;
+  float aspect = u_resolution.x / u_resolution.y;
+  p.x *= aspect;
+
+  float t = u_time * 0.22;
+
+  vec2 c1 = vec2(sin(t * 0.61) * 0.55, cos(t * 0.48) * 0.42);
+  vec2 c2 = vec2(cos(t * 0.37 + 1.7) * 0.62, sin(t * 0.55 + 0.9) * 0.38);
+  vec2 c3 = vec2(sin(t * 0.33 + 2.9) * 0.35, cos(t * 0.71) * 0.55);
+
   float w =
-    sin(uv.x * 6.28318 + t * 1.3) * 0.07 +
-    cos(uv.y * 6.28318 - t * 0.9) * 0.06 +
-    sin((uv.x + uv.y) * 4.0 + t * 0.5) * 0.04;
+    sin(p.x * 2.8 + t * 1.1) * sin(p.y * 2.2 - t * 0.85) * 0.12 +
+    sin((p.x + p.y) * 1.9 + t * 0.6) * 0.08;
 
-  vec3 deep = vec3(0.06, 0.07, 0.14);
-  vec3 mid = vec3(0.12, 0.22, 0.42);
-  vec3 glow = vec3(0.38, 0.22, 0.48);
+  vec3 col = palette(w + length(uv) * 0.35 + t * 0.04);
 
-  vec3 col = mix(deep, mid, clamp(uv.y + w + 0.15, 0.0, 1.0));
-  float blob = sin(uv.x * 10.0 + t) * 0.5 + 0.5;
-  col = mix(col, glow, blob * 0.28 * (1.0 - uv.y * 0.4));
+  col += glow(p, c1, 0.11) * vec3(0.45, 0.55, 1.0);
+  col += glow(p, c2, 0.09) * vec3(1.0, 0.45, 0.75);
+  col += glow(p, c3, 0.075) * vec3(0.35, 0.85, 0.95);
 
-  float vig = 1.0 - length(uv - 0.5) * 0.55;
-  col *= vig;
+  float rim = 1.0 - smoothstep(0.2, 1.4, length(p));
+  col += rim * 0.08 * vec3(0.6, 0.75, 1.0);
+
+  col = pow(clamp(col, 0.0, 1.0), vec3(0.94));
+
+  vec2 vigUv = uv - 0.5;
+  float vig = 1.0 - dot(vigUv, vigUv) * 1.15;
+  col *= clamp(vig, 0.15, 1.0);
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -67,7 +93,7 @@ export function AuthShader() {
 
     const gl = canvas.getContext("webgl", {
       alpha: false,
-      antialias: false,
+      antialias: true,
       depth: false,
       stencil: false,
     });
@@ -100,7 +126,7 @@ export function AuthShader() {
     const uRes = gl.getUniformLocation(prog, "u_resolution");
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.25);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       canvas.width = Math.max(1, Math.floor(w * dpr));
@@ -137,11 +163,5 @@ export function AuthShader() {
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="auth-split__canvas"
-      aria-hidden
-    />
-  );
+  return <canvas ref={canvasRef} className="auth-split__canvas" aria-hidden />;
 }

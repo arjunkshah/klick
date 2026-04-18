@@ -51,7 +51,7 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
           className="auth-split__home text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-80"
           aria-label="Klick home"
         >
-          <KlickLogo />
+          <KlickLogo className="text-[1.25rem] font-semibold tracking-[-0.03em] sm:text-[1.375rem]" />
         </Link>
 
         <div className="auth-split__content">
@@ -90,7 +90,7 @@ export function AuthSplitScreen({ mode }: { mode: Mode }) {
               }
             }}
           >
-            <GoogleMark />
+            <GoogleMark size={22} />
             <span>Continue with Google</span>
           </button>
 

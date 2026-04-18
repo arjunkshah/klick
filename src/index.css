@@ -1289,7 +1289,7 @@ html[data-theme="dark"] .theme-appearance-pill__track {
   text-transform: uppercase;
   color: var(--color-theme-text-tertiary);
 }
-/* —— Auth: 50/50 WebGL shader + form, locked to viewport (no document scroll) —— */
+/* —— Auth: shader + spacious form, locked to viewport (no document scroll) —— */
 .auth-split {
   display: grid;
   width: 100%;
@@ -1299,24 +1299,20 @@ html[data-theme="dark"] .theme-appearance-pill__track {
   color: var(--color-theme-text);
   background: var(--color-theme-bg);
   grid-template-columns: 1fr;
+  grid-template-rows: minmax(32dvh, 10.5rem) minmax(0, 1fr);
 }
 @media (min-width: 900px) {
   .auth-split {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
   }
 }
 .auth-split__shader {
   position: relative;
-  display: none;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: #0a0a12;
-}
-@media (min-width: 900px) {
-  .auth-split__shader {
-    display: block;
-  }
+  background: #06050c;
 }
 .auth-split__canvas {
   display: block;
@@ -1327,9 +1323,9 @@ html[data-theme="dark"] .theme-appearance-pill__track {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.11;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 .auth-split__panel {
   position: relative;
@@ -1338,64 +1334,66 @@ html[data-theme="dark"] .theme-appearance-pill__track {
   justify-content: center;
   min-height: 0;
   min-width: 0;
-  padding: 3.25rem 1.5rem 1.5rem;
+  padding: 3.75rem clamp(1.5rem, 5vw, 3rem) 2rem;
   border-left: none;
   border-top: 1px solid var(--color-theme-border-01);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 @media (min-width: 900px) {
   .auth-split__panel {
-    padding: 2.5rem 2.75rem 2rem;
+    padding: clamp(2.5rem, 6vh, 4rem) clamp(2.5rem, 7vw, 4.5rem);
     border-top: none;
     border-left: 1px solid var(--color-theme-border-01);
   }
 }
 .auth-split__home {
   position: absolute;
-  top: 1rem;
-  left: 1.25rem;
+  top: 1.25rem;
+  left: clamp(1.25rem, 4vw, 2rem);
   z-index: 2;
 }
 @media (min-width: 900px) {
   .auth-split__home {
-    top: 1.5rem;
-    left: 1.75rem;
+    top: clamp(1.5rem, 3vh, 2rem);
+    left: clamp(1.75rem, 5vw, 2.5rem);
   }
 }
 .auth-split__content {
   width: 100%;
-  max-width: 20rem;
+  max-width: min(28rem, 100%);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: clamp(1rem, 2.5vh, 1.35rem);
   min-height: 0;
 }
 .auth-split__title {
-  margin: 0 0 0.15rem;
-  font-size: clamp(1.2rem, 2.8vw, 1.45rem);
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.65rem, 4.5vw, 2.35rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
 }
 .auth-split__hint {
   margin: 0;
-  font-size: 0.6875rem;
-  line-height: 1.35;
+  font-size: 0.8125rem;
+  line-height: 1.45;
   color: var(--color-theme-text-tertiary);
 }
 .auth-split__code {
   font-family: var(--font-berkeley-mono);
-  font-size: 0.62em;
-  padding: 0.08em 0.35em;
-  border-radius: 3px;
+  font-size: 0.72em;
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
   background: color-mix(in oklab, var(--color-theme-fg) 6%, transparent);
   color: var(--color-theme-text);
 }
 .auth-split__error {
   margin: 0;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.35;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in oklab, #dc2626 35%, var(--color-theme-border-02));
   background: color-mix(in oklab, #dc2626 8%, var(--color-theme-bg));
@@ -1410,28 +1408,34 @@ html[data-theme="dark"] .auth-split__error {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   width: 100%;
-  height: 2.5rem;
+  min-height: 3.25rem;
   margin: 0;
-  padding: 0 1rem;
+  padding: 0 1.35rem;
   border-radius: 9999px;
   border: 1px solid var(--color-theme-border-02);
   background: var(--color-theme-card-hex);
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 550;
   color: var(--color-theme-text);
   cursor: pointer;
-  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-theme-fg) 4%, transparent);
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--color-theme-fg) 5%, transparent),
+    0 4px 20px -6px color-mix(in oklab, var(--color-theme-fg) 12%, transparent);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease,
+    box-shadow 0.15s ease;
 }
 .auth-split__google:hover:not(:disabled) {
   background: var(--color-theme-card-hover-light-hex);
   border-color: var(--color-theme-border-02-5);
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--color-theme-fg) 6%, transparent),
+    0 8px 28px -8px color-mix(in oklab, var(--color-theme-fg) 14%, transparent);
 }
 .auth-split__google:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: scale(0.995);
 }
 .auth-split__google:disabled {
   opacity: 0.5;
@@ -1440,11 +1444,11 @@ html[data-theme="dark"] .auth-split__error {
 .auth-split__rule {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin: 0.05rem 0;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  gap: 0.85rem;
+  margin: 0.1rem 0;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-theme-text-tertiary);
 }
@@ -1458,66 +1462,69 @@ html[data-theme="dark"] .auth-split__error {
 .auth-split__form {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 1rem;
   min-height: 0;
 }
 .auth-split__field {
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
+  gap: 0.45rem;
 }
 .auth-split__label {
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 550;
   color: var(--color-theme-text-sec);
 }
 .auth-split__input {
   box-sizing: border-box;
   width: 100%;
-  height: 2.125rem;
-  padding: 0 0.65rem;
-  border-radius: var(--radius-sm);
+  min-height: 3rem;
+  padding: 0 1rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-theme-border-02);
   background: var(--color-theme-bg);
   color: var(--color-theme-text);
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .auth-split__input:focus-visible {
   border-color: var(--color-theme-accent-muted);
-  box-shadow: 0 0 0 1px var(--color-theme-accent-muted);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-theme-accent) 22%, transparent);
 }
 .auth-split__input:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .auth-split__submit {
-  margin-top: 0.2rem;
-  height: 2.125rem;
-  border-radius: var(--radius-sm);
+  margin-top: 0.35rem;
+  min-height: 3rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-theme-button-bg);
   background: var(--color-theme-button-bg);
   color: var(--color-theme-button-text);
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.12s ease;
 }
 .auth-split__submit:hover:not(:disabled) {
   opacity: 0.94;
+}
+.auth-split__submit:active:not(:disabled) {
+  transform: scale(0.995);
 }
 .auth-split__submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .auth-split__switch {
-  margin: 0.35rem 0 0;
+  margin: 0.5rem 0 0;
   text-align: center;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: 0.9375rem;
+  line-height: 1.45;
   color: var(--color-theme-text-sec);
 }
 .auth-split__switch-link {
