@@ -41,11 +41,27 @@ function IconMoon({ className }: { className?: string }) {
 
 type Props = {
   className?: string;
+  /** Single control that cycles theme — for narrow / collapsed rails */
+  compact?: boolean;
 };
 
 /** Linear / Notion–style light–dark control: sun & moon in a pill with a sliding thumb. */
-export function ThemeAppearanceToggle({ className = "" }: Props) {
+export function ThemeAppearanceToggle({ className = "", compact = false }: Props) {
   const { theme, setTheme } = useTheme();
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        className={`theme-appearance-compact ${className}`.trim()}
+        aria-label={`Use ${theme === "light" ? "dark" : "light"} theme`}
+        title={theme === "light" ? "Dark mode" : "Light mode"}
+        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      >
+        {theme === "light" ? <IconMoon className="theme-appearance-compact__icon" /> : <IconSun className="theme-appearance-compact__icon" />}
+      </button>
+    );
+  }
 
   return (
     <div
@@ -79,3 +95,4 @@ export function ThemeAppearanceToggle({ className = "" }: Props) {
     </div>
   );
 }
+

@@ -28,26 +28,41 @@ export function SignupPage() {
 
   return (
     <div className="auth-page">
-      <header className="auth-page__header">
-        <div className="container grid h-[var(--site-header-height)] w-full max-w-none grid-cols-[1fr_auto] items-center">
+      <aside className="auth-page__brand">
+        <div className="auth-page__brand-top">
           <Link
             to="/"
-            className="relative left-[-2px] top-[0.15rem] inline-flex items-center text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-88"
+            className="auth-page__brand-logo text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-88"
             aria-label="Klick home"
           >
-            <KlickLogo />
+            <KlickLogo className="text-[1.75rem] font-semibold tracking-[-0.04em] lg:text-[2rem]" />
           </Link>
-          <Link className="btn btn--ghost btn--sm no-underline" to="/login">
-            Sign in
-          </Link>
+          <p className="auth-page__brand-tagline text-pretty">
+            Spin up a workspace with demo data—issues, docs, and threads ready to explore.
+          </p>
         </div>
-      </header>
+      </aside>
 
-      <main className="auth-page__main">
-        <div className="auth-page__panel">
-          <div className="card card--large">
+      <div className="auth-page__column">
+        <header className="auth-page__header">
+          <div className="auth-page__header-inner">
+            <Link
+              to="/"
+              className="auth-page__header-logo inline-flex items-center text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-88 lg:hidden"
+              aria-label="Klick home"
+            >
+              <KlickLogo />
+            </Link>
+            <Link className="btn btn--ghost btn--sm no-underline lg:ml-auto" to="/login">
+              Sign in
+            </Link>
+          </div>
+        </header>
+
+        <main className="auth-page__main">
+          <div className="auth-page__inner">
             <p className="auth-eyebrow">Account</p>
-            <h1 className="auth-title type-md text-balance">Create workspace</h1>
+            <h1 className="auth-title type-lg text-balance sm:type-2xl">Create workspace</h1>
             <p className="auth-lede text-pretty">
               Use Google or email. Demo data stays in this browser — local-first by default.
             </p>
@@ -173,8 +188,8 @@ export function SignupPage() {
               </p>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

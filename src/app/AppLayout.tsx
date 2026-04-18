@@ -97,90 +97,65 @@ export function AppLayout() {
 
   const navBlock = (title: string, items: NavItem[]) => (
     <div className="app-rail-section">
-      <h2 className="footer-heading">{title}</h2>
+      <h2 className="sidebar-nav-heading">{title}</h2>
       {renderNav(items)}
     </div>
   );
 
   return (
     <div className="app-shell">
-      <header className="app-topbar">
-        <div className="container app-topbar-inner w-full max-w-none">
-          <div className="flex min-w-0 flex-1 items-center gap-x-g1">
-            <NavLink
-              to="/app"
-              className="relative top-[0.15rem] inline-flex shrink-0 items-center text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-85"
-              aria-label="Today"
-            >
-              <KlickLogo />
-            </NavLink>
-            <span
-              className="hidden h-5 w-px shrink-0 bg-theme-border-02 sm:block"
-              aria-hidden
-            />
-            <div className="min-w-0">
-              <div className="type-sm font-medium leading-tight text-theme-text truncate">
-                {workspace.name}
-              </div>
-              <div className="type-product-sm truncate text-theme-text-tertiary">
-                {accountEmail ?? "Signed in"}
-              </div>
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-2">
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setOpen(true)}
-              title="Command palette"
-            >
-              <span className="type-sm">Search</span>
-              <span className="app-kbd ml-1">⌘K</span>
-            </button>
-            <NavLink to="/app/issues?new=1" className="btn btn--sm no-underline">
-              New issue
-            </NavLink>
-            <ThemeAppearanceToggle />
-            <button
-              type="button"
-              className="btn--quinary type-sm px-2 transition-opacity duration-[var(--duration)] hover:opacity-80"
-              onClick={() => {
-                void signOutUser().then(() => navigate("/"));
-              }}
-            >
-              Sign out
-            </button>
-          </div>
+      <aside className="app-rail" data-collapsed={collapsed ? "true" : "false"}>
+        <div className="app-rail__head">
+          <NavLink
+            to="/app"
+            className="app-rail__brand text-theme-text no-underline transition-opacity duration-[var(--duration)] hover:opacity-85"
+            aria-label="Today"
+            title={collapsed ? "Today" : undefined}
+          >
+            <KlickLogo />
+          </NavLink>
+          <button
+            type="button"
+            className="app-rail-toggle"
+            onClick={toggle}
+            aria-expanded={!collapsed}
+            aria-controls="app-rail-nav"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <IconChevronRail collapsed={collapsed} />
+          </button>
         </div>
-      </header>
 
-      <div className="app-shell__body">
-        <aside className="app-rail" data-collapsed={collapsed ? "true" : "false"}>
-          <div className="app-rail-toolbar">
-            <button
-              type="button"
-              className="app-rail-toggle"
-              onClick={toggle}
-              aria-expanded={!collapsed}
-              aria-controls="app-rail-nav"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <IconChevronRail collapsed={collapsed} />
-            </button>
-          </div>
-          <div id="app-rail-nav" className="app-rail__scroll thin-scrollbar">
-            {navBlock("Pulse", primary)}
-            {navBlock("Work", work)}
-            {navBlock("Context", context)}
-            {navBlock("Agents", automate)}
-            {navBlock("Workspace", workspaceNav)}
-          </div>
-        </aside>
-
-        <div className="app-canvas">
-          <Outlet />
+        <div className="app-rail__meta">
+          <div className="app-rail__meta-line">{workspace.name}</div>
+          <div className="app-rail__meta-sub">{accountEmail ?? "Signed in"}</div>
         </div>
-      </div>
+
+        <nav id="app-rail-nav" className="app-rail__scroll thin-scrollbar" aria-label="Workspace">
+          {navBlock("Pulse", primary)}
+          {navBlock("Work", work)}
+          {navBlock("Context", context)}
+          {navBlock("Agents", automate)}
+          {navBlock("Workspace", workspaceNav)}
+        </nav>
+
+        <div className="app-rail__footer">
+          <button
+            type="button"
+            className="app-rail__signout"
+            onClick={() => {
+              void signOutUser().then(() => navigate("/"));
+            }}
+          >
+            Sign out
+          </button>
+          <ThemeAppearanceToggle compact={collapsed} />
+        </div>
+      </aside>
+
+      <main className="app-canvas">
+        <Outlet />
+      </main>
 
       <CommandPalette open={open} onClose={() => setOpen(false)} />
     </div>
