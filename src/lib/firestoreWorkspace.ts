@@ -3,6 +3,7 @@ import { getFirebaseDb } from "./firebase";
 import type {
   Channel,
   ChannelMessage,
+  DexChat,
   DexMessage,
   Doc,
   DocFolder,
@@ -13,11 +14,12 @@ import type {
   Project,
   Task,
   TeamMember,
+  WorkspaceMeta,
 } from "../data/types";
 
 /** Single-document workspace payload (no UI-only fields). */
 export type WorkspacePayload = {
-  workspace: { name: string; slackConnected: boolean };
+  workspace: WorkspaceMeta;
   profile: { displayName: string; email: string };
   members: TeamMember[];
   projects: Project[];
@@ -30,8 +32,79 @@ export type WorkspacePayload = {
   channels: Channel[];
   messages: ChannelMessage[];
   tasks: Task[];
-  dexMessages: DexMessage[];
+  dexChats: DexChat[];
+  dexActiveChatId: string;
 };
+
+function newId() {
+  return globalThis.crypto?.randomUUID?.() ?? `c-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+const DEX_WELCOME: DexMessage[] = [
+  {
+    id: "dex-welcome",
+    role: "assistant",
+    content:
+      "I’m **Dex**. I’m grounded in your workspace data in Firebase. Ask for a summary, what’s blocked, or what to tackle next.",
+    createdAt: new Date().toISOString(),
+  },
+];
+
+function dexChatsFromFirestore(raw: Record<string, unknown>): { dexChats: DexChat[]; dexActiveChatId: string } {
+  const arr = raw.dexChats;
+  if (Array.isArray(arr) && arr.length > 0) {
+    const chats: DexChat[] = arr
+      .filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === "object")
+      .map((x) => {
+        const msgs = Array.isArray(x.messages) ? (x.messages as DexMessage[]) : [...DEX_WELCOME];
+        const created = String(x.createdAt ?? new Date().toISOString());
+        return {
+          id: String(x.id ?? newId()),
+          title: String(x.title ?? "Chat"),
+          createdAt: created,
+          updatedAt: String(x.updatedAt ?? created),
+          messages: msgs.length > 0 ? msgs : [...DEX_WELCOME],
+        };
+      });
+    const activeRaw = raw.dexActiveChatId;
+    const activeId =
+      typeof activeRaw === "string" && chats.some((c) => c.id === activeRaw) ? activeRaw : chats[0]!.id;
+    return { dexChats: chats, dexActiveChatId: activeId };
+  }
+
+  const legacy = Array.isArray(raw.dexMessages) ? (raw.dexMessages as DexMessage[]) : [];
+  if (legacy.length > 0) {
+    const t = new Date().toISOString();
+    const cid = newId();
+    return {
+      dexChats: [
+        {
+          id: cid,
+          title: "Chat",
+          createdAt: t,
+          updatedAt: t,
+          messages: legacy,
+        },
+      ],
+      dexActiveChatId: cid,
+    };
+  }
+
+  const t = new Date().toISOString();
+  const cid = newId();
+  return {
+    dexChats: [
+      {
+        id: cid,
+        title: "New chat",
+        createdAt: t,
+        updatedAt: t,
+        messages: [...DEX_WELCOME],
+      },
+    ],
+    dexActiveChatId: cid,
+  };
+}
 
 export function workspaceDocRef(uid: string) {
   const db = getFirebaseDb();
@@ -45,7 +118,13 @@ export function defaultWorkspacePayload(
   displayName: string,
 ): WorkspacePayload {
   return {
-    workspace: { name: "My workspace", slackConnected: false },
+    workspace: {
+      name: "My workspace",
+      slackConnected: false,
+      slackWorkspace: undefined,
+      googleCalendarConnected: false,
+      githubConnected: false,
+    },
     profile: { displayName, email },
     members: [
       {
@@ -67,15 +146,22 @@ export function defaultWorkspacePayload(
     channels: [],
     messages: [],
     tasks: [],
-    dexMessages: [
-      {
-        id: "dex-welcome",
-        role: "assistant",
-        content:
-          "I’m **Dex**. I’m grounded in your workspace data in Firebase. Ask for a summary, what’s blocked, or what to tackle next.",
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    ...(() => {
+      const t = new Date().toISOString();
+      const cid = newId();
+      return {
+        dexChats: [
+          {
+            id: cid,
+            title: "New chat",
+            createdAt: t,
+            updatedAt: t,
+            messages: [...DEX_WELCOME],
+          },
+        ],
+        dexActiveChatId: cid,
+      };
+    })(),
   };
 }
 
@@ -88,6 +174,12 @@ function normalizePayload(raw: Record<string, unknown>): WorkspacePayload | null
     workspace: {
       name: String((w as { name?: string }).name ?? "Workspace"),
       slackConnected: Boolean((w as { slackConnected?: boolean }).slackConnected),
+      slackWorkspace:
+        typeof (w as { slackWorkspace?: string }).slackWorkspace === "string"
+          ? (w as { slackWorkspace: string }).slackWorkspace
+          : undefined,
+      googleCalendarConnected: Boolean((w as { googleCalendarConnected?: boolean }).googleCalendarConnected),
+      githubConnected: Boolean((w as { githubConnected?: boolean }).githubConnected),
     },
     profile: {
       displayName: String((p as { displayName?: string }).displayName ?? "You"),
@@ -104,7 +196,7 @@ function normalizePayload(raw: Record<string, unknown>): WorkspacePayload | null
     channels: Array.isArray(raw.channels) ? (raw.channels as Channel[]) : [],
     messages: Array.isArray(raw.messages) ? (raw.messages as ChannelMessage[]) : [],
     tasks: Array.isArray(raw.tasks) ? (raw.tasks as Task[]) : [],
-    dexMessages: Array.isArray(raw.dexMessages) ? (raw.dexMessages as DexMessage[]) : [],
+    ...dexChatsFromFirestore(raw),
   };
 }
 

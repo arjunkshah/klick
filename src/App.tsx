@@ -1,13 +1,16 @@
 import { AnimatePresence } from "framer-motion";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppLayout } from "./app/AppLayout";
-import { AppPlaceholderPage } from "./app/pages/AppPlaceholderPage";
-import { DocsPage } from "./app/pages/DocsPage";
 import { DexPage } from "./app/pages/DexPage";
-import { PeoplePage } from "./app/pages/PeoplePage";
+import { DocsPage } from "./app/pages/DocsPage";
+import { IntegrationsPage } from "./app/pages/IntegrationsPage";
 import { InboxPage } from "./app/pages/InboxPage";
+import { PeoplePage } from "./app/pages/PeoplePage";
+import { PlaybooksPage } from "./app/pages/PlaybooksPage";
 import { IssuesPage } from "./app/pages/IssuesPage";
 import { ProjectsPage } from "./app/pages/ProjectsPage";
+import { RunsPage } from "./app/pages/RunsPage";
+import { SettingsPage } from "./app/pages/SettingsPage";
 import { TasksPage } from "./app/pages/TasksPage";
 import { ThreadsPage } from "./app/pages/ThreadsPage";
 import { TodayPage } from "./app/pages/TodayPage";
@@ -64,10 +67,10 @@ export default function App() {
           <Route path="docs" element={<DocsPage />} />
           <Route path="people" element={<PeoplePage />} />
           <Route path="dex" element={<DexPage />} />
-          <Route path="playbooks" element={<AppPlaceholderPage title="Playbooks" />} />
-          <Route path="runs" element={<AppPlaceholderPage title="Runs" />} />
-          <Route path="integrations" element={<AppPlaceholderPage title="Integrations" />} />
-          <Route path="settings" element={<AppPlaceholderPage title="Settings" />} />
+          <Route path="playbooks" element={<PlaybooksPage />} />
+          <Route path="runs" element={<RunsPage />} />
+          <Route path="integrations" element={<IntegrationsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

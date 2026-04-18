@@ -1,0 +1,191 @@
+import { updateProfile, type User } from "firebase/auth";
+import { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
+import { ThemeAppearanceToggle } from "../../components/ThemeAppearanceToggle";
+import { useAuth } from "../../auth/useAuth";
+import { getSession, setSession } from "../../auth/session";
+import { getFirebaseAuth, isFirebaseConfigured } from "../../lib/firebase";
+import { useKlickStore } from "../../data/store";
+
+type ProfileShape = { displayName: string; email: string };
+
+type EditableProps = {
+  workspaceName: string;
+  profile: ProfileShape;
+  user: User | null;
+  setWorkspaceName: (name: string) => void;
+  setProfile: (p: ProfileShape) => void;
+};
+
+function SettingsEditableFields({
+  workspaceName,
+  profile,
+  user,
+  setWorkspaceName,
+  setProfile,
+}: EditableProps) {
+  const [wsName, setWsName] = useState(workspaceName);
+  const [displayName, setDisplayName] = useState(profile.displayName);
+  const [wsSaved, setWsSaved] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileErr, setProfileErr] = useState<string | null>(null);
+
+  const saveWorkspace = useCallback(() => {
+    const next = wsName.trim() || "My workspace";
+    setWorkspaceName(next);
+    const sess = getSession();
+    if (sess) setSession({ ...sess, workspaceName: next });
+    setWsSaved(true);
+    window.setTimeout(() => setWsSaved(false), 2000);
+  }, [wsName, setWorkspaceName]);
+
+  const saveProfile = useCallback(async () => {
+    const next = displayName.trim() || profile.email.split("@")[0] || "You";
+    setProfileErr(null);
+    const auth = getFirebaseAuth();
+    if (auth && user) {
+      try {
+        await updateProfile(user, { displayName: next });
+      } catch (e) {
+        setProfileErr(e instanceof Error ? e.message : "Could not update profile");
+        return;
+      }
+    }
+    setProfile({ displayName: next, email: profile.email });
+    const sess = getSession();
+    if (sess) setSession({ ...sess, displayName: next });
+    setProfileSaved(true);
+    window.setTimeout(() => setProfileSaved(false), 2000);
+  }, [displayName, profile.email, user, setProfile]);
+
+  return (
+    <>
+      <section className="settings-card" aria-labelledby="settings-ws-heading">
+        <h2 id="settings-ws-heading" className="settings-card__title">
+          Workspace
+        </h2>
+        <p className="settings-card__hint">Shown in the sidebar, Today, and Dex context.</p>
+        <label className="hub-field-label" htmlFor="settings-ws-name">
+          Display name
+        </label>
+        <div className="settings-inline">
+          <input
+            id="settings-ws-name"
+            type="text"
+            className="hub-input"
+            value={wsName}
+            onChange={(e) => setWsName(e.target.value)}
+          />
+          <button type="button" className="work-btn work-btn--primary" onClick={saveWorkspace}>
+            Save
+          </button>
+        </div>
+        {wsSaved ? (
+          <p className="settings-toast" role="status">
+            Workspace saved.
+          </p>
+        ) : null}
+      </section>
+
+      <section className="settings-card" aria-labelledby="settings-profile-heading">
+        <h2 id="settings-profile-heading" className="settings-card__title">
+          Profile
+        </h2>
+        <p className="settings-card__hint">
+          {isFirebaseConfigured() && user
+            ? "Updates your Firebase display name when signed in."
+            : "Updates the local profile label for this session."}
+        </p>
+        <label className="hub-field-label" htmlFor="settings-display">
+          Display name
+        </label>
+        <div className="settings-inline">
+          <input
+            id="settings-display"
+            type="text"
+            className="hub-input"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+          <button type="button" className="work-btn work-btn--primary" onClick={() => void saveProfile()}>
+            Save
+          </button>
+        </div>
+        <label className="hub-field-label" htmlFor="settings-email">
+          Email
+        </label>
+        <input id="settings-email" type="email" className="hub-input hub-input--readonly" readOnly value={profile.email} />
+        {profileErr ? (
+          <p className="settings-warn" role="alert">
+            {profileErr}
+          </p>
+        ) : null}
+        {profileSaved ? (
+          <p className="settings-toast" role="status">
+            Profile saved.
+          </p>
+        ) : null}
+      </section>
+    </>
+  );
+}
+
+export function SettingsPage() {
+  const { user } = useAuth();
+  const workspace = useKlickStore((s) => s.workspace);
+  const profile = useKlickStore((s) => s.profile);
+  const setWorkspaceName = useKlickStore((s) => s.setWorkspaceName);
+  const setProfile = useKlickStore((s) => s.setProfile);
+
+  return (
+    <div className="app-page hub-page">
+      <div className="today-page work-page work-page--wide">
+        <header className="today-page__header">
+          <p className="today-page__workspace">{workspace.name}</p>
+          <div className="today-page__title-row">
+            <h1 className="today-page__title">Settings</h1>
+            <Link to="/app/integrations" className="today-link">
+              Integrations
+            </Link>
+          </div>
+          <p className="hub-lede">
+            Workspace name and profile sync to <strong>Firebase</strong> with the rest of your Klick data.
+          </p>
+        </header>
+
+        <div className="settings-stack">
+          <SettingsEditableFields
+            key={`${workspace.name}\0${profile.displayName}\0${profile.email}`}
+            workspaceName={workspace.name}
+            profile={profile}
+            user={user}
+            setWorkspaceName={setWorkspaceName}
+            setProfile={setProfile}
+          />
+
+          <section className="settings-card" aria-labelledby="settings-theme-heading">
+            <h2 id="settings-theme-heading" className="settings-card__title">
+              Appearance
+            </h2>
+            <p className="settings-card__hint">Matches the control in the workspace rail.</p>
+            <div className="settings-theme-row">
+              <span className="settings-theme-label">Theme</span>
+              <ThemeAppearanceToggle />
+            </div>
+          </section>
+
+          <section className="settings-card settings-card--muted" aria-labelledby="settings-data-heading">
+            <h2 id="settings-data-heading" className="settings-card__title">
+              Data
+            </h2>
+            <p className="settings-card__text">
+              Issues, docs, Dex chats, playbooks, and runs are stored under your account in Firestore. Sign out from the
+              rail to clear local session state; your cloud workspace remains until you delete the project data in
+              Firebase.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

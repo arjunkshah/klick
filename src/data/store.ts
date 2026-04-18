@@ -6,6 +6,7 @@ import type { WorkspacePayload } from "../lib/firestoreWorkspace";
 import type {
   Channel,
   ChannelMessage,
+  DexChat,
   DexMessage,
   Doc,
   DocFolder,
@@ -14,11 +15,13 @@ import type {
   IssueState,
   Playbook,
   PlaybookRun,
+  PlaybookStep,
   Priority,
   Project,
   RunStepLog,
   Task,
   TeamMember,
+  WorkspaceMeta,
 } from "./types";
 
 const now = () => new Date().toISOString();
@@ -35,10 +38,21 @@ function initialDexMessages(): DexMessage[] {
       id: "dex-welcome",
       role: "assistant",
       content:
-        "I’m **Dex**. Ask anything about your workspace—summaries, blockers, inbox, tasks—using the live data synced from Firebase.",
+        "I’m **Dex**. I’m grounded in your workspace data in Firebase. Ask for a summary, what’s blocked, or what to tackle next.",
       createdAt: now(),
     },
   ];
+}
+
+function makeNewDexChat(): DexChat {
+  const t = now();
+  return {
+    id: id(),
+    title: "New chat",
+    createdAt: t,
+    updatedAt: t,
+    messages: initialDexMessages(),
+  };
 }
 
 function currentMemberId(get: () => KlickStore): string | null {
@@ -92,7 +106,8 @@ function toWorkspacePayload(s: KlickStore): WorkspacePayload {
     channels: s.channels,
     messages: s.messages,
     tasks: s.tasks,
-    dexMessages: s.dexMessages,
+    dexChats: s.dexChats,
+    dexActiveChatId: s.dexActiveChatId,
   };
 }
 
@@ -101,7 +116,7 @@ type KlickStore = {
   workspaceLoadError: string | null;
   remoteSaveSuspended: boolean;
 
-  workspace: { name: string; slackConnected: boolean };
+  workspace: WorkspaceMeta;
   profile: { displayName: string; email: string };
   members: TeamMember[];
   projects: Project[];
@@ -115,7 +130,8 @@ type KlickStore = {
   messages: ChannelMessage[];
   tasks: Task[];
 
-  dexMessages: DexMessage[];
+  dexChats: DexChat[];
+  dexActiveChatId: string;
   dexBusy: boolean;
   dexLastError: string | null;
 
@@ -126,6 +142,7 @@ type KlickStore = {
 
   setWorkspaceName: (name: string) => void;
   setSlackConnected: (v: boolean) => void;
+  patchWorkspace: (patch: Partial<WorkspaceMeta>) => void;
   setProfile: (p: { displayName: string; email: string }) => void;
 
   addProject: (name: string, description: string) => void;
@@ -166,6 +183,9 @@ type KlickStore = {
   ) => void;
 
   updatePlaybook: (playbookId: string, patch: Partial<Playbook>) => void;
+  addPlaybook: (name: string, description: string) => string;
+  removePlaybook: (playbookId: string) => void;
+  seedStarterPlaybooks: () => void;
 
   startRun: (playbookId: string) => string;
   advanceRun: (
@@ -183,6 +203,9 @@ type KlickStore = {
   setMemberPresence: (memberId: string, presence: TeamMember["presence"]) => void;
 
   sendDexMessage: (content: string) => Promise<void>;
+  createDexChat: () => void;
+  setDexActiveChat: (chatId: string) => void;
+  deleteDexChat: (chatId: string) => void;
   clearDexChat: () => void;
   /** Clear in-memory workspace after sign-out (next user loads from Firestore). */
   resetSessionState: () => void;
@@ -198,6 +221,7 @@ const emptyWorkspace = (): Omit<
       | "getWorkspacePayload"
       | "setWorkspaceName"
       | "setSlackConnected"
+      | "patchWorkspace"
       | "setProfile"
       | "addProject"
       | "updateProject"
@@ -218,12 +242,18 @@ const emptyWorkspace = (): Omit<
       | "dismissInbox"
       | "addInbox"
       | "updatePlaybook"
+      | "addPlaybook"
+      | "removePlaybook"
+      | "seedStarterPlaybooks"
       | "startRun"
       | "advanceRun"
       | "cancelRun"
       | "addMember"
       | "setMemberPresence"
       | "sendDexMessage"
+      | "createDexChat"
+      | "setDexActiveChat"
+      | "deleteDexChat"
       | "clearDexChat"
       | "resetSessionState"
     >
@@ -231,7 +261,13 @@ const emptyWorkspace = (): Omit<
   workspaceLoadState: "idle",
   workspaceLoadError: null,
   remoteSaveSuspended: false,
-  workspace: { name: "My workspace", slackConnected: false },
+  workspace: {
+    name: "My workspace",
+    slackConnected: false,
+    slackWorkspace: undefined,
+    googleCalendarConnected: false,
+    githubConnected: false,
+  },
   profile: { displayName: "You", email: "" },
   members: [],
   projects: [],
@@ -244,7 +280,10 @@ const emptyWorkspace = (): Omit<
   channels: [],
   messages: [],
   tasks: [],
-  dexMessages: initialDexMessages(),
+  ...(() => {
+    const c = makeNewDexChat();
+    return { dexChats: [c], dexActiveChatId: c.id };
+  })(),
   dexBusy: false,
   dexLastError: null,
 });
@@ -258,6 +297,15 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
   setRemoteSaveSuspended: (v) => set({ remoteSaveSuspended: v }),
 
   hydrateFromFirestore: (payload) => {
+    let dexChats = payload.dexChats;
+    let dexActiveChatId = payload.dexActiveChatId;
+    if (!dexChats || dexChats.length === 0) {
+      const c = makeNewDexChat();
+      dexChats = [c];
+      dexActiveChatId = c.id;
+    } else if (!dexActiveChatId || !dexChats.some((c) => c.id === dexActiveChatId)) {
+      dexActiveChatId = dexChats[0]!.id;
+    }
     set({
       remoteSaveSuspended: true,
       workspace: payload.workspace,
@@ -273,8 +321,8 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
       channels: payload.channels,
       messages: payload.messages,
       tasks: payload.tasks,
-      dexMessages:
-        payload.dexMessages?.length > 0 ? payload.dexMessages : initialDexMessages(),
+      dexChats,
+      dexActiveChatId,
       workspaceLoadState: "ready",
       workspaceLoadError: null,
     });
@@ -286,6 +334,7 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
   setWorkspaceName: (name) => set({ workspace: { ...get().workspace, name } }),
   setSlackConnected: (slackConnected) =>
     set({ workspace: { ...get().workspace, slackConnected } }),
+  patchWorkspace: (patch) => set({ workspace: { ...get().workspace, ...patch } }),
   setProfile: (profile) => set({ profile }),
 
   addProject: (name, description) => {
@@ -487,6 +536,94 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
     });
   },
 
+  addPlaybook: (name, description) => {
+    const pb: Playbook = {
+      id: id(),
+      name: name.trim() || "Untitled playbook",
+      description: description.trim(),
+      steps: [
+        {
+          id: id(),
+          type: "human",
+          title: "Kickoff",
+          description: "Confirm scope, owners, and success criteria.",
+          autonomy: null,
+        },
+        {
+          id: id(),
+          type: "agent",
+          title: "Draft output",
+          description: "Agent produces a first draft for your review.",
+          autonomy: "draft",
+        },
+      ],
+      updatedAt: now(),
+    };
+    set({ playbooks: [...get().playbooks, pb] });
+    return pb.id;
+  },
+
+  removePlaybook: (playbookId) => {
+    if (get().runs.some((r) => r.playbookId === playbookId && r.status === "running")) return;
+    set({ playbooks: get().playbooks.filter((p) => p.id !== playbookId) });
+  },
+
+  seedStarterPlaybooks: () => {
+    if (get().playbooks.length > 0) return;
+    const t = now();
+    const mkStep = (partial: Omit<PlaybookStep, "id">): PlaybookStep => ({
+      id: id(),
+      ...partial,
+    });
+    const a: Playbook = {
+      id: id(),
+      name: "Weekly ship review",
+      description: "Human triage, then an agent-drafted summary for stakeholders.",
+      updatedAt: t,
+      steps: [
+        mkStep({
+          type: "human",
+          title: "Review P1 issues",
+          description: "Scan open urgent work and unblock owners.",
+          autonomy: null,
+        }),
+        mkStep({
+          type: "agent",
+          title: "Draft week recap",
+          description: "Summarize progress, risks, and next focus.",
+          autonomy: "draft",
+        }),
+        mkStep({
+          type: "human",
+          title: "Publish notes",
+          description: "Edit and share in Threads or Docs.",
+          autonomy: null,
+        }),
+      ],
+    };
+    const b: Playbook = {
+      id: id(),
+      name: "Incident warm path",
+      description: "Lightweight checklist when something breaks.",
+      updatedAt: t,
+      steps: [
+        mkStep({
+          type: "human",
+          title: "Acknowledge & scope",
+          description: "Confirm severity and owner on call.",
+          autonomy: null,
+        }),
+        mkStep({
+          type: "agent",
+          title: "Draft customer update",
+          description: "Suggested comms template (review before send).",
+          autonomy: "suggest",
+        }),
+      ],
+    };
+    set({ playbooks: [a, b] });
+  },
+
   startRun: (playbookId) => {
     const pb = get().playbooks.find((p) => p.id === playbookId);
     if (!pb) return "";
@@ -649,14 +786,31 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
     const trimmed = content.trim();
     if (!trimmed) return;
     const s = get();
+    const chat = s.dexChats.find((c) => c.id === s.dexActiveChatId) ?? s.dexChats[0];
+    if (!chat) return;
+
+    const chatId = chat.id;
     const userMsg: DexMessage = {
       id: id(),
       role: "user",
       content: trimmed,
       createdAt: now(),
     };
-    const nextMessages = [...s.dexMessages, userMsg];
-    set({ dexMessages: nextMessages, dexBusy: true, dexLastError: null });
+    const nextMessages = [...chat.messages, userMsg];
+    const t0 = now();
+    let title = chat.title;
+    const defaultTitle = !title || title === "New chat" || title === "Chat";
+    if (defaultTitle) {
+      title = trimmed.length > 56 ? `${trimmed.slice(0, 56)}…` : trimmed;
+    }
+
+    set({
+      dexChats: s.dexChats.map((c) =>
+        c.id === chatId ? { ...c, messages: nextMessages, title, updatedAt: t0 } : c,
+      ),
+      dexBusy: true,
+      dexLastError: null,
+    });
 
     const apiMsgs = nextMessages
       .filter((m) => m.role === "user" || m.role === "assistant")
@@ -665,18 +819,27 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
     const payload = toWorkspacePayload(get());
     const workspaceContext = buildWorkspaceContextJson(payload);
 
-    try {
-      const reply = await fetchDexReply(apiMsgs, workspaceContext);
+    const appendAssistant = (assistantContent: string, dexErr: string | null) => {
       const assistantMsg: DexMessage = {
         id: id(),
         role: "assistant",
-        content: reply,
+        content: assistantContent,
         createdAt: now(),
       };
       set({
-        dexMessages: [...get().dexMessages, assistantMsg],
+        dexChats: get().dexChats.map((c) =>
+          c.id === chatId
+            ? { ...c, messages: [...c.messages, assistantMsg], updatedAt: now() }
+            : c,
+        ),
         dexBusy: false,
+        dexLastError: dexErr,
       });
+    };
+
+    try {
+      const reply = await fetchDexReply(apiMsgs, workspaceContext);
+      appendAssistant(reply, null);
     } catch (e) {
       const ctx = snapshotDexContext({
         workspace: get().workspace,
@@ -689,21 +852,46 @@ export const useKlickStore = create<KlickStore>()((set, get) => ({
       });
       const fallback = buildDexReply(trimmed, ctx);
       const errText = e instanceof Error ? e.message : "Dex request failed";
-      const assistantMsg: DexMessage = {
-        id: id(),
-        role: "assistant",
-        content: `_${errText}_ — showing offline answer:\n\n${fallback}`,
-        createdAt: now(),
-      };
-      set({
-        dexMessages: [...get().dexMessages, assistantMsg],
-        dexBusy: false,
-        dexLastError: errText,
-      });
+      appendAssistant(`_${errText}_ — showing offline answer:\n\n${fallback}`, errText);
     }
   },
 
-  clearDexChat: () => set({ dexMessages: initialDexMessages(), dexLastError: null }),
+  createDexChat: () => {
+    const c = makeNewDexChat();
+    set({
+      dexChats: [c, ...get().dexChats],
+      dexActiveChatId: c.id,
+      dexLastError: null,
+    });
+  },
+
+  setDexActiveChat: (chatId) => {
+    if (!get().dexChats.some((c) => c.id === chatId)) return;
+    set({ dexActiveChatId: chatId, dexLastError: null });
+  },
+
+  deleteDexChat: (chatId) => {
+    const s = get();
+    if (s.dexChats.length <= 1) return;
+    const next = s.dexChats.filter((c) => c.id !== chatId);
+    let active = s.dexActiveChatId;
+    if (active === chatId) active = next[0]!.id;
+    set({ dexChats: next, dexActiveChatId: active, dexLastError: null });
+  },
+
+  clearDexChat: () => {
+    const s = get();
+    const aid = s.dexActiveChatId;
+    const t = now();
+    set({
+      dexChats: s.dexChats.map((c) =>
+        c.id === aid
+          ? { ...c, messages: initialDexMessages(), title: "New chat", updatedAt: t }
+          : c,
+      ),
+      dexLastError: null,
+    });
+  },
 
   resetSessionState: () =>
     set({

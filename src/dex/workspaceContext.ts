@@ -8,6 +8,12 @@ export function buildWorkspaceContextJson(state: WorkspacePayload): string {
   return JSON.stringify(
     {
       workspace: state.workspace,
+      integrations: {
+        slack: state.workspace.slackConnected,
+        slackWorkspace: state.workspace.slackWorkspace ?? null,
+        googleCalendar: Boolean(state.workspace.googleCalendarConnected),
+        github: Boolean(state.workspace.githubConnected),
+      },
       user: { email: state.profile.email, displayName: state.profile.displayName, memberId: youId },
       counts: {
         projects: state.projects.length,

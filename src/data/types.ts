@@ -1,3 +1,13 @@
+/** Workspace-level flags (persisted with workspace doc). */
+export type WorkspaceMeta = {
+  name: string;
+  slackConnected: boolean;
+  /** Slack workspace or team name when connected (display only / demo). */
+  slackWorkspace?: string;
+  googleCalendarConnected?: boolean;
+  githubConnected?: boolean;
+};
+
 export type IssueState = "backlog" | "todo" | "in_progress" | "done" | "canceled";
 export type Priority = "low" | "medium" | "high" | "urgent";
 
@@ -118,6 +128,15 @@ export type DexMessage = {
   role: DexMessageRole;
   content: string;
   createdAt: string;
+};
+
+/** One Dex conversation thread (persisted in workspace). */
+export type DexChat = {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: DexMessage[];
 };
 
 export type MemberPresence = "active" | "away" | "offline";
